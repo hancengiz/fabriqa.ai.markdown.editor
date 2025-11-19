@@ -6,6 +6,18 @@ An Obsidian-like markdown editor extension for Visual Studio Code with three edi
 - **Source Mode**: Full markdown source with all syntax visible
 - **Reading Mode**: Pure HTML preview (read-only)
 
+## Screenshots
+
+### Organized Sidebar & Live Preview Mode
+![fabriqa.ai sidebar with markdown files organized by sections](screenshots/screenshot-1.png)
+
+The extension provides a custom sidebar to organize your markdown files by sections using glob patterns. Files are automatically discovered and grouped based on your configuration.
+
+### Mode Switching Menu
+![Mode switching menu showing Live Preview, Source, and Reading modes](screenshots/screenshot-2.png)
+
+Quickly switch between editing modes using the settings menu in the editor toolbar, or use keyboard shortcuts for faster navigation.
+
 ## Features
 
 - 📝 **Three Editing Modes**: Switch seamlessly between Live Preview, Source, and Reading modes
