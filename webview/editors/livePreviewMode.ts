@@ -5,6 +5,7 @@ import { SyntaxNode } from '@lezer/common';
 
 /**
  * Widget for clickable links in Live Preview
+ * Supports Cmd/Ctrl+Click to open markdown files
  */
 class LinkWidget extends WidgetType {
   constructor(readonly url: string, readonly text: string) {
@@ -12,25 +13,44 @@ class LinkWidget extends WidgetType {
   }
 
   toDOM() {
-    const link = document.createElement('a');
-    link.textContent = this.text;
-    link.href = this.url;
-    link.className = 'cm-link-preview';
-    link.title = this.url;
-    link.style.cssText = `
+    const span = document.createElement('span');
+    span.textContent = this.text;
+    span.className = 'cm-link-preview';
+    span.title = this.url;
+    span.style.cssText = `
       color: var(--vscode-textLink-foreground);
-      text-decoration: none;
+      text-decoration: underline;
       cursor: pointer;
     `;
-    link.addEventListener('click', (e) => {
-      e.preventDefault();
-      // You could send a message to VS Code to open the link
-      console.log('Link clicked:', this.url);
+
+    span.addEventListener('click', (e) => {
+      // Only open link on Cmd/Ctrl+Click
+      if (e.metaKey || e.ctrlKey) {
+        e.preventDefault();
+        e.stopPropagation();
+
+        // Send message to VS Code to open the file
+        const vscode = (window as any).acquireVsCodeApi?.() || (window as any).vscode;
+        if (vscode) {
+          vscode.postMessage({
+            type: 'openLink',
+            url: this.url
+          });
+        }
+      }
     });
-    return link;
+
+    return span;
   }
 
-  ignoreEvent() {
+  ignoreEvent(event: Event) {
+    // Allow click events with modifier keys
+    if (event.type === 'click') {
+      const mouseEvent = event as MouseEvent;
+      if (mouseEvent.metaKey || mouseEvent.ctrlKey) {
+        return true; // Editor should ignore this, widget handles it
+      }
+    }
     return false;
   }
 }
@@ -430,74 +450,30 @@ export const livePreviewPlugin = ViewPlugin.fromClass(
     handleLink(linkNode: SyntaxNode, view: EditorView, decorations: Range<Decoration>[]): void {
       let linkText = '';
       let linkUrl = '';
-      let markStart = -1;
-      let markEnd = -1;
+      let linkStart = linkNode.from;
+      let linkEnd = linkNode.to;
 
       // Parse link structure [text](url)
       linkNode.node.cursor().iterate((node) => {
         const nodeText = view.state.doc.sliceString(node.from, node.to);
 
         switch (node.type.name) {
-          case 'LinkMark':
-            if (nodeText === '[') {
-              markStart = node.from;
-            } else if (nodeText === ']') {
-              markEnd = node.to;
-            }
-            // Hide link marks
-            decorations.push(
-              Decoration.replace({ inclusive: false }).range(node.from, node.to)
-            );
-            break;
-
           case 'LinkLabel':
             linkText = nodeText;
             break;
 
           case 'URL':
             linkUrl = nodeText;
-            // Hide URL and parentheses
-            // Find the opening and closing parentheses
-            const urlFullRange = nodeText;
-            const openParenPos = view.state.doc.sliceString(0, node.from).lastIndexOf('(');
-            const closeParenPos = view.state.doc.sliceString(node.to).indexOf(')');
-
-            if (openParenPos !== -1) {
-              // Hide opening paren
-              decorations.push(
-                Decoration.replace({ inclusive: false }).range(node.from - 1, node.from)
-              );
-            }
-
-            // Hide URL itself
-            decorations.push(
-              Decoration.replace({ inclusive: false }).range(node.from, node.to)
-            );
-
-            if (closeParenPos !== -1) {
-              // Hide closing paren
-              decorations.push(
-                Decoration.replace({ inclusive: false }).range(node.to, node.to + 1)
-              );
-            }
             break;
         }
       });
 
-      // Apply link styling to the text
-      if (linkText && linkUrl && markStart !== -1 && markEnd !== -1) {
+      // Replace entire link with widget [text](url) -> clickable text
+      if (linkText && linkUrl) {
         decorations.push(
-          Decoration.mark({
-            class: 'cm-link-text',
-            attributes: {
-              style: `
-                color: var(--vscode-textLink-foreground);
-                text-decoration: underline;
-                cursor: pointer;
-              `,
-              title: linkUrl
-            }
-          }).range(markStart + 1, markEnd - 1)
+          Decoration.replace({
+            widget: new LinkWidget(linkUrl, linkText)
+          }).range(linkStart, linkEnd)
         );
       }
     }

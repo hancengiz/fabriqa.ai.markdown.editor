@@ -234,6 +234,9 @@ export const readingModePlugin = ViewPlugin.fromClass(
 
         // Make checkboxes interactive
         this.setupCheckboxHandlers(view);
+
+        // Make links clickable with Cmd/Ctrl+Click
+        this.setupLinkHandlers(view);
       } catch (error) {
         console.error('Failed to render markdown:', error);
         if (this.htmlContainer) {
@@ -289,6 +292,40 @@ export const readingModePlugin = ViewPlugin.fromClass(
                 return;
               }
               checkboxCount++;
+            }
+          }
+        });
+      });
+    }
+
+    /**
+     * Setup click handlers for links in reading mode
+     * Allows opening markdown files with Cmd/Ctrl+Click
+     */
+    setupLinkHandlers(view: EditorView) {
+      if (!this.htmlContainer) return;
+
+      const links = this.htmlContainer.querySelectorAll('a[href]');
+
+      links.forEach((link) => {
+        link.addEventListener('click', (e) => {
+          const mouseEvent = e as MouseEvent;
+
+          // Only handle Cmd/Ctrl+Click
+          if (mouseEvent.metaKey || mouseEvent.ctrlKey) {
+            e.preventDefault();
+            e.stopPropagation();
+
+            const href = (link as HTMLAnchorElement).getAttribute('href');
+            if (href) {
+              // Send message to VS Code to open the file
+              const vscode = (window as any).acquireVsCodeApi?.() || (window as any).vscode;
+              if (vscode) {
+                vscode.postMessage({
+                  type: 'openLink',
+                  url: href
+                });
+              }
             }
           }
         });

@@ -172,8 +172,45 @@ export class MarkdownEditorProvider implements vscode.CustomTextEditorProvider {
         WebviewLogger.log(message.level || 'log', message.message, message.data);
         break;
 
+      case 'openLink':
+        // Open linked markdown file with Fabriqa editor
+        await this.openLinkedFile(message.url, document);
+        break;
+
       default:
         Logger.warn(`Unknown message type from webview: ${message.type}`);
+    }
+  }
+
+  /**
+   * Open a linked markdown file in the Fabriqa editor
+   */
+  private async openLinkedFile(url: string, currentDocument: vscode.TextDocument): Promise<void> {
+    try {
+      Logger.info(`Opening linked file: ${url}`);
+
+      // Resolve the link relative to the current document
+      const currentDir = path.dirname(currentDocument.uri.fsPath);
+      const targetPath = path.isAbsolute(url) ? url : path.join(currentDir, url);
+
+      // Create URI for the target file
+      const targetUri = vscode.Uri.file(targetPath);
+
+      // Check if file exists
+      try {
+        await vscode.workspace.fs.stat(targetUri);
+      } catch (error) {
+        vscode.window.showWarningMessage(`File not found: ${url}`);
+        return;
+      }
+
+      // Open the file with Fabriqa editor
+      await vscode.commands.executeCommand('vscode.openWith', targetUri, 'fabriqa.markdownEditor');
+
+      Logger.info(`Successfully opened linked file: ${targetPath}`);
+    } catch (error) {
+      Logger.error(`Failed to open linked file: ${url}`, error);
+      vscode.window.showErrorMessage(`Failed to open linked file: ${url}`);
     }
   }
 
