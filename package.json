@@ -1,16 +1,36 @@
 {
-  "name": "fabriqa.ai.markdown.editor",
+  "name": "fabriqa-markdown-editor",
   "displayName": "fabriqa.ai Markdown Editor",
   "description": "Obsidian-like markdown editor with Live Preview, Source, and Reading modes",
   "version": "0.1.0",
-  "publisher": "fabriqa",
-  "icon": "resources/icon.svg",
+  "publisher": "fabriqaai",
+  "icon": "resources/icon.png",
   "engines": {
     "vscode": "^1.85.0"
   },
   "categories": [
-    "Other"
+    "Programming Languages",
+    "Formatters"
   ],
+  "keywords": [
+    "markdown",
+    "editor",
+    "preview",
+    "obsidian",
+    "live preview",
+    "reading mode",
+    "checkbox",
+    "task list"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/hancengiz/fabriqa.ai.markdown.editor.git"
+  },
+  "bugs": {
+    "url": "https://github.com/hancengiz/fabriqa.ai.markdown.editor/issues"
+  },
+  "homepage": "https://github.com/hancengiz/fabriqa.ai.markdown.editor#readme",
+  "license": "MIT",
   "activationEvents": [
     "onStartupFinished",
     "onCustomEditor:fabriqa.markdownEditor",
