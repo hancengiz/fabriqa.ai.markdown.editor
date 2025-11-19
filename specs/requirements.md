@@ -92,22 +92,51 @@ Built with **CodeMirror 6** for authentic Obsidian-like experience with three di
 
 #### Mode Switching
 Users can toggle between modes via:
-- **Toolbar buttons** in editor (top-right settings icon)
+- **Settings icon** in editor (top-right) → Opens mode switching menu
 - **Keyboard shortcuts**:
   - `Cmd+Shift+P` (Mac) / `Ctrl+Shift+P` (Windows/Linux) - Switch to Live Preview
   - `Cmd+Shift+S` (Mac) / `Ctrl+Shift+S` (Windows/Linux) - Switch to Source
   - `Cmd+Shift+R` (Mac) / `Ctrl+Shift+R` (Windows/Linux) - Switch to Reading
 - **Command palette** commands (`Cmd/Ctrl+Shift+P` → search "Fabriqa")
-- **Settings** for default mode preference
+
+**Default Mode Setting:**
+- **Setting**: `fabriqa.defaultMode` (livePreview | source | reading)
+- **Behavior**: Determines which mode new editors open in
+- **Persistence**: Setting persists across VS Code sessions
+- **Ephemeral Switching**: Changing mode in an open editor does NOT update the setting
+  - Each editor instance can have a different mode
+  - Mode switches only affect the current editor window
+  - Close and reopen the file → reverts to default mode
+
+#### Keyboard Shortcuts (Markdown Formatting)
+Obsidian-style keyboard shortcuts for quick formatting:
+
+| Shortcut | Mac | Windows/Linux | Action |
+|----------|-----|---------------|--------|
+| **Bold** | `Cmd+B` | `Ctrl+B` | Wrap selection with `**text**` |
+| **Italic** | `Cmd+I` | `Ctrl+I` | Wrap selection with `*text*` |
+| **Inline Code** | `Cmd+E` | `Ctrl+E` | Wrap selection with `` `code` `` |
+| **Link** | `Cmd+K` | `Ctrl+K` | Insert `[text](url)` link |
+| **Code Block** | `Cmd+Shift+E` | `Ctrl+Shift+E` | Insert fenced code block |
+| **Strikethrough** | `Cmd+Shift+X` | `Ctrl+Shift+X` | Wrap with `~~text~~` |
+| **Heading** | `Cmd+Shift+H` | `Ctrl+Shift+H` | Toggle heading levels (# → ## → ### ...) |
+| **Bullet List** | `Cmd+Shift+8` | `Ctrl+Shift+8` | Toggle bullet list |
+| **Numbered List** | `Cmd+Shift+7` | `Ctrl+Shift+7` | Toggle numbered list |
+| **Blockquote** | `Cmd+Shift+.` | `Ctrl+Shift+.` | Toggle blockquote |
+
+**Behavior:**
+- **With selection**: Wraps selected text with markdown syntax
+- **Without selection**: Inserts syntax and positions cursor appropriately
+- **Link shortcut**: After inserting, cursor moves to URL field for easy editing
 
 #### Editor Features
 - ✅ **Headings** (H1-H6) with live rendering
-- ✅ **Text formatting** (bold, italic, strikethrough)
-- ✅ **Lists** (ordered, unordered, task lists)
-- ✅ **Links** and images with inline preview
-- ✅ **Code blocks** with syntax highlighting (100+ languages)
+- ✅ **Text formatting** (bold, italic, strikethrough) with keyboard shortcuts
+- ✅ **Lists** (ordered, unordered, task lists) with keyboard shortcuts
+- ✅ **Links** and images with inline preview and keyboard shortcuts
+- ✅ **Code blocks** with syntax highlighting (100+ languages) and keyboard shortcuts
 - ✅ **Tables** with formatted rendering
-- ✅ **Blockquotes** with visual styling
+- ✅ **Blockquotes** with visual styling and keyboard shortcuts
 - ✅ **Horizontal rules**
 - ✅ **Live Preview** with cursor-based syntax revealing
 - ✅ **GFM support** (GitHub Flavored Markdown)
@@ -787,11 +816,11 @@ Config Loader → File Scanner → Tree Item Builder → TreeView API
     "default": true,
     "description": "Automatically refresh tree view on file changes"
   },
-  "markdownExtension.editor.defaultMode": {
+  "fabriqa.defaultMode": {
     "type": "string",
     "enum": ["livePreview", "source", "reading"],
     "default": "livePreview",
-    "description": "Default editing mode when opening markdown files"
+    "description": "Default editing mode when opening markdown files (ephemeral - mode switches don't update this setting)"
   },
   "markdownExtension.editor.toolbar": {
     "type": "boolean",
