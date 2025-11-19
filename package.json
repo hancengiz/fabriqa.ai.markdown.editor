@@ -1,6 +1,6 @@
 {
   "name": "fabriqa.ai.markdown.editor",
-  "displayName": "Fabriqa.ai Markdown Editor",
+  "displayName": "fabriqa.ai Markdown Editor",
   "description": "Obsidian-like markdown editor with Live Preview, Source, and Reading modes",
   "version": "0.1.0",
   "publisher": "fabriqa",
@@ -21,7 +21,7 @@
     "customEditors": [
       {
         "viewType": "fabriqa.markdownEditor",
-        "displayName": "Fabriqa.ai Markdown Editor",
+        "displayName": "fabriqa.ai Markdown Editor",
         "selector": [
           {
             "filenamePattern": "*.md"
@@ -159,7 +159,7 @@
       ]
     },
     "configuration": {
-      "title": "Fabriqa.ai Markdown Editor",
+      "title": "fabriqa.ai Markdown Editor",
       "properties": {
         "fabriqa.configFile": {
           "type": "string",

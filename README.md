@@ -1,4 +1,4 @@
-# Fabriqa.ai Markdown Editor
+# fabriqa.ai Markdown Editor
 
 An Obsidian-like markdown editor extension for Visual Studio Code with three editing modes:
 
