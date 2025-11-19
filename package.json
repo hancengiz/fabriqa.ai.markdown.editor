@@ -183,8 +183,8 @@
       "properties": {
         "fabriqa.configFile": {
           "type": "string",
-          "default": ".vscode/markdown-extension-config.json",
-          "description": "Path to the JSON configuration file (deprecated - use .fabriqa.markdown.yml instead)"
+          "default": ".vscode/fabriqa-markdown-editor-config.json",
+          "description": "Path to the JSON configuration file"
         },
         "fabriqa.sidebarSections": {
           "type": "array",

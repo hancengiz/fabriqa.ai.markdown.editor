@@ -1,7 +1,6 @@
 import * as vscode from 'vscode';
 import * as path from 'path';
 import * as fs from 'fs';
-import * as yaml from 'js-yaml';
 import { Logger } from '../utils/Logger';
 import {
   MarkdownConfig,
@@ -46,34 +45,20 @@ export class ConfigManager {
    */
   private getConfigFilePath(): string {
     const configSetting = vscode.workspace.getConfiguration('fabriqa').get<string>('configFile');
-    const relativePath = configSetting || '.vscode/markdown-extension-config.json';
+    const relativePath = configSetting || '.vscode/fabriqa-markdown-editor-config.json';
     return relativePath;
   }
 
   /**
    * Load and validate the configuration
-   * Priority: .fabriqa.sidebar.yml > .vscode/markdown-extension-config.json > VS Code settings > defaults
+   * Priority: .vscode/fabriqa-markdown-editor-config.json > VS Code settings > defaults
    */
   private loadConfig(): ValidatedConfig {
-    // 1. Try .fabriqa.sidebar.yml in project root (highest priority)
-    const yamlConfigPath = path.join(this.workspaceRoot, '.fabriqa.sidebar.yml');
-    if (fs.existsSync(yamlConfigPath)) {
-      try {
-        Logger.info('Loading configuration from .fabriqa.sidebar.yml');
-        const fileContent = fs.readFileSync(yamlConfigPath, 'utf-8');
-        const rawConfig = yaml.load(fileContent) as MarkdownConfig;
-        return this.validateConfigAsync(rawConfig);
-      } catch (error) {
-        Logger.error('Failed to load .fabriqa.sidebar.yml', error);
-        vscode.window.showErrorMessage(`Failed to load .fabriqa.sidebar.yml: ${error}`);
-      }
-    }
-
-    // 2. Try .vscode/markdown-extension-config.json (backward compatibility)
+    // 1. Try .vscode/fabriqa-markdown-editor-config.json
     const absoluteConfigPath = path.join(this.workspaceRoot, this.configPath);
     if (fs.existsSync(absoluteConfigPath)) {
       try {
-        Logger.info('Loading configuration from .vscode/markdown-extension-config.json');
+        Logger.info('Loading configuration from .vscode/fabriqa-markdown-editor-config.json');
         const fileContent = fs.readFileSync(absoluteConfigPath, 'utf-8');
         const rawConfig: MarkdownConfig = JSON.parse(fileContent);
         return this.validateConfigAsync(rawConfig);
@@ -83,7 +68,7 @@ export class ConfigManager {
       }
     }
 
-    // 3. Try VS Code settings
+    // 2. Try VS Code settings
     const vscodeConfig = vscode.workspace.getConfiguration('fabriqa');
     const sidebarSections = vscodeConfig.get<any[]>('sidebarSections');
 
@@ -92,7 +77,7 @@ export class ConfigManager {
       return this.validateConfigAsync({ sections: sidebarSections });
     }
 
-    // 4. Use defaults
+    // 3. Use defaults
     Logger.info('Using default configuration');
     return this.createDefaultConfig();
   }

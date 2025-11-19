@@ -21,7 +21,7 @@ Quickly switch between editing modes using the settings menu in the editor toolb
 ## Features
 
 - 📝 **Three Editing Modes**: Switch seamlessly between Live Preview, Source, and Reading modes
-- 🎯 **Config-Driven Sidebar**: Organize markdown files by sections using `.vscode/markdown-extension-config.json`
+- 🎯 **Config-Driven Sidebar**: Organize markdown files by sections using `.vscode/fabriqa-markdown-editor-config.json`
 - 🎨 **VS Code Theme Integration**: Automatically adapts to your VS Code theme
 - ⚡ **CodeMirror 6**: Powered by the modern CodeMirror 6 editor
 - 🔒 **Secure**: Content Security Policy and DOMPurify sanitization
@@ -31,7 +31,7 @@ Quickly switch between editing modes using the settings menu in the editor toolb
 
 ### 1. (Optional) Create Configuration File
 
-To organize your markdown files into custom sections in the sidebar, create a `.vscode/markdown-extension-config.json` file in your workspace:
+To organize your markdown files into custom sections in the sidebar, create a `.vscode/fabriqa-markdown-editor-config.json` file in your workspace:
 
 ```json
 {
