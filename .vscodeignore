@@ -18,3 +18,14 @@ specs/**
 esbuild.js
 *.md
 !README.md
+!CHANGELOG.md
+test-workspace/**
+.obsidian/**
+*.sh
+temp_logs.sh
+convert-icon.js
+jest.config.js
+tasks.md
+*.log
+.DS_Store
+scripts/**
