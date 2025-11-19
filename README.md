@@ -1,4 +1,4 @@
-# Kiro Markdown Editor
+# Fabriqa.ai Markdown Editor
 
 An Obsidian-like markdown editor extension for Visual Studio Code with three editing modes:
 
@@ -50,8 +50,8 @@ Create a `.vscode/markdown-extension-config.json` file in your workspace:
 
 ### 2. Open Markdown Files
 
-- Click on any file in the **KIRO** sidebar to open it with the custom editor
-- Or right-click a `.md` file and select "Open with Kiro Editor"
+- Click on any file in the **FABRIQA** sidebar to open it with the custom editor
+- Or right-click a `.md` file and select "Open with Fabriqa Editor"
 
 ### 3. Switch Modes
 
@@ -64,12 +64,12 @@ Use the toolbar buttons at the top of the editor:
 
 Configure the extension in VS Code settings (`Cmd/Ctrl + ,`):
 
-- `kiro.configFile`: Path to config file (default: `.vscode/markdown-extension-config.json`)
-- `kiro.defaultMode`: Default editing mode (`livePreview`, `source`, or `reading`)
-- `kiro.theme`: Editor theme (`auto`, `light`, or `dark`)
-- `kiro.fontSize`: Font size for the editor (default: 14)
-- `kiro.lineHeight`: Line height multiplier (default: 1.6)
-- `kiro.autoSave`: Auto-save changes (default: true)
+- `fabriqa.configFile`: Path to config file (default: `.vscode/markdown-extension-config.json`)
+- `fabriqa.defaultMode`: Default editing mode (`livePreview`, `source`, or `reading`)
+- `fabriqa.theme`: Editor theme (`auto`, `light`, or `dark`)
+- `fabriqa.fontSize`: Font size for the editor (default: 14)
+- `fabriqa.lineHeight`: Line height multiplier (default: 1.6)
+- `fabriqa.autoSave`: Auto-save changes (default: true)
 
 ## Development
 
@@ -142,14 +142,14 @@ The extension uses VS Code's Custom Editor API with a webview-based editor:
 
 ## Commands
 
-- `Kiro: Open with Kiro Editor` - Open markdown file with custom editor
-- `Kiro: Switch to Live Preview Mode` - Switch to live preview
-- `Kiro: Switch to Source Mode` - Switch to source mode
-- `Kiro: Switch to Reading Mode` - Switch to reading mode
-- `Kiro: Create New File` - Create new markdown file
-- `Kiro: Delete File` - Delete selected file
-- `Kiro: Rename File` - Rename selected file
-- `Kiro: Refresh Tree View` - Refresh sidebar
+- `Fabriqa: Open with Fabriqa Editor` - Open markdown file with custom editor
+- `Fabriqa: Switch to Live Preview Mode` - Switch to live preview
+- `Fabriqa: Switch to Source Mode` - Switch to source mode
+- `Fabriqa: Switch to Reading Mode` - Switch to reading mode
+- `Fabriqa: Create New File` - Create new markdown file
+- `Fabriqa: Delete File` - Delete selected file
+- `Fabriqa: Rename File` - Rename selected file
+- `Fabriqa: Refresh Tree View` - Refresh sidebar
 
 ## License
 

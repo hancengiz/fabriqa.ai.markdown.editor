@@ -9,7 +9,7 @@ let treeProvider: MarkdownTreeProvider | undefined;
 let editorProvider: MarkdownEditorProvider | undefined;
 
 export function activate(context: vscode.ExtensionContext): void {
-  Logger.info('Kiro Markdown Editor activating...');
+  Logger.info('Fabriqa Markdown Editor activating...');
 
   try {
     // Initialize configuration manager
@@ -18,14 +18,14 @@ export function activate(context: vscode.ExtensionContext): void {
     // Create tree provider for sidebar
     treeProvider = new MarkdownTreeProvider(configManager);
     context.subscriptions.push(
-      vscode.window.registerTreeDataProvider('kiro.markdownTree', treeProvider)
+      vscode.window.registerTreeDataProvider('fabriqa.markdownTree', treeProvider)
     );
 
     // Register custom editor provider
     editorProvider = new MarkdownEditorProvider(context, configManager);
     context.subscriptions.push(
       vscode.window.registerCustomEditorProvider(
-        'kiro.markdownEditor',
+        'fabriqa.markdownEditor',
         editorProvider,
         {
           webviewOptions: {
@@ -42,15 +42,15 @@ export function activate(context: vscode.ExtensionContext): void {
     // Watch for config file changes
     setupFileWatchers(context, treeProvider, configManager);
 
-    Logger.info('Kiro Markdown Editor activated successfully');
+    Logger.info('Fabriqa Markdown Editor activated successfully');
   } catch (error) {
-    Logger.error('Failed to activate Kiro Markdown Editor', error);
-    vscode.window.showErrorMessage(`Failed to activate Kiro Markdown Editor: ${error}`);
+    Logger.error('Failed to activate Fabriqa Markdown Editor', error);
+    vscode.window.showErrorMessage(`Failed to activate Fabriqa Markdown Editor: ${error}`);
   }
 }
 
 export function deactivate(): void {
-  Logger.info('Kiro Markdown Editor deactivating...');
+  Logger.info('Fabriqa Markdown Editor deactivating...');
   treeProvider = undefined;
   editorProvider = undefined;
 }

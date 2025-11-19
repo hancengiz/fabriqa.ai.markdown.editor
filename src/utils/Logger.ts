@@ -4,7 +4,7 @@ class LoggerService {
   private outputChannel: vscode.OutputChannel;
 
   constructor() {
-    this.outputChannel = vscode.window.createOutputChannel('Kiro Markdown Editor');
+    this.outputChannel = vscode.window.createOutputChannel('Fabriqa Markdown Editor');
   }
 
   public info(message: string, ...args: any[]): void {

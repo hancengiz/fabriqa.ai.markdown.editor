@@ -1,9 +1,9 @@
 {
-  "name": "kiro-markdown-editor",
-  "displayName": "Kiro Markdown Editor",
+  "name": "fabriqa-markdown-editor",
+  "displayName": "Fabriqa.ai Markdown Editor",
   "description": "Obsidian-like markdown editor with Live Preview, Source, and Reading modes",
   "version": "0.1.0",
-  "publisher": "kiro",
+  "publisher": "fabriqa",
   "engines": {
     "vscode": "^1.85.0"
   },
@@ -11,15 +11,15 @@
     "Other"
   ],
   "activationEvents": [
-    "onCustomEditor:kiro.markdownEditor",
-    "onView:kiro.markdownTree"
+    "onCustomEditor:fabriqa.markdownEditor",
+    "onView:fabriqa.markdownTree"
   ],
   "main": "./dist/extension.js",
   "contributes": {
     "customEditors": [
       {
-        "viewType": "kiro.markdownEditor",
-        "displayName": "Kiro Markdown Editor",
+        "viewType": "fabriqa.markdownEditor",
+        "displayName": "Fabriqa.ai Markdown Editor",
         "selector": [
           {
             "filenamePattern": "*.md"
@@ -31,154 +31,154 @@
     "views": {
       "explorer": [
         {
-          "id": "kiro.markdownTree",
-          "name": "KIRO",
+          "id": "fabriqa.markdownTree",
+          "name": "FABRIQA",
           "icon": "resources/icon.svg",
-          "contextualTitle": "Kiro Markdown"
+          "contextualTitle": "Fabriqa Markdown"
         }
       ]
     },
     "commands": [
       {
-        "command": "kiro.openMarkdownEditor",
-        "title": "Open with Kiro Editor",
-        "category": "Kiro"
+        "command": "fabriqa.openMarkdownEditor",
+        "title": "Open with Fabriqa Editor",
+        "category": "Fabriqa"
       },
       {
-        "command": "kiro.switchToLivePreview",
+        "command": "fabriqa.switchToLivePreview",
         "title": "Switch to Live Preview Mode",
-        "category": "Kiro",
+        "category": "Fabriqa",
         "icon": "$(eye)"
       },
       {
-        "command": "kiro.switchToSource",
+        "command": "fabriqa.switchToSource",
         "title": "Switch to Source Mode",
-        "category": "Kiro",
+        "category": "Fabriqa",
         "icon": "$(code)"
       },
       {
-        "command": "kiro.switchToReading",
+        "command": "fabriqa.switchToReading",
         "title": "Switch to Reading Mode",
-        "category": "Kiro",
+        "category": "Fabriqa",
         "icon": "$(book)"
       },
       {
-        "command": "kiro.createFile",
+        "command": "fabriqa.createFile",
         "title": "Create New File",
-        "category": "Kiro",
+        "category": "Fabriqa",
         "icon": "$(new-file)"
       },
       {
-        "command": "kiro.deleteFile",
+        "command": "fabriqa.deleteFile",
         "title": "Delete File",
-        "category": "Kiro",
+        "category": "Fabriqa",
         "icon": "$(trash)"
       },
       {
-        "command": "kiro.renameFile",
+        "command": "fabriqa.renameFile",
         "title": "Rename File",
-        "category": "Kiro",
+        "category": "Fabriqa",
         "icon": "$(edit)"
       },
       {
-        "command": "kiro.refreshTree",
+        "command": "fabriqa.refreshTree",
         "title": "Refresh Tree View",
-        "category": "Kiro",
+        "category": "Fabriqa",
         "icon": "$(refresh)"
       },
       {
-        "command": "kiro.collapseSection",
+        "command": "fabriqa.collapseSection",
         "title": "Collapse Section",
-        "category": "Kiro"
+        "category": "Fabriqa"
       },
       {
-        "command": "kiro.expandSection",
+        "command": "fabriqa.expandSection",
         "title": "Expand Section",
-        "category": "Kiro"
+        "category": "Fabriqa"
       }
     ],
     "menus": {
       "view/title": [
         {
-          "command": "kiro.createFile",
-          "when": "view == kiro.markdownTree",
+          "command": "fabriqa.createFile",
+          "when": "view == fabriqa.markdownTree",
           "group": "navigation"
         },
         {
-          "command": "kiro.refreshTree",
-          "when": "view == kiro.markdownTree",
+          "command": "fabriqa.refreshTree",
+          "when": "view == fabriqa.markdownTree",
           "group": "navigation"
         }
       ],
       "view/item/context": [
         {
-          "command": "kiro.openMarkdownEditor",
-          "when": "view == kiro.markdownTree && viewItem == file",
+          "command": "fabriqa.openMarkdownEditor",
+          "when": "view == fabriqa.markdownTree && viewItem == file",
           "group": "inline"
         },
         {
-          "command": "kiro.renameFile",
-          "when": "view == kiro.markdownTree && viewItem == file",
+          "command": "fabriqa.renameFile",
+          "when": "view == fabriqa.markdownTree && viewItem == file",
           "group": "edit@1"
         },
         {
-          "command": "kiro.deleteFile",
-          "when": "view == kiro.markdownTree && viewItem == file",
+          "command": "fabriqa.deleteFile",
+          "when": "view == fabriqa.markdownTree && viewItem == file",
           "group": "edit@2"
         },
         {
-          "command": "kiro.createFile",
-          "when": "view == kiro.markdownTree && viewItem == section",
+          "command": "fabriqa.createFile",
+          "when": "view == fabriqa.markdownTree && viewItem == section",
           "group": "navigation"
         }
       ],
       "editor/title": [
         {
-          "command": "kiro.switchToLivePreview",
-          "when": "activeCustomEditorId == kiro.markdownEditor",
+          "command": "fabriqa.switchToLivePreview",
+          "when": "activeCustomEditorId == fabriqa.markdownEditor",
           "group": "navigation@1"
         },
         {
-          "command": "kiro.switchToSource",
-          "when": "activeCustomEditorId == kiro.markdownEditor",
+          "command": "fabriqa.switchToSource",
+          "when": "activeCustomEditorId == fabriqa.markdownEditor",
           "group": "navigation@2"
         },
         {
-          "command": "kiro.switchToReading",
-          "when": "activeCustomEditorId == kiro.markdownEditor",
+          "command": "fabriqa.switchToReading",
+          "when": "activeCustomEditorId == fabriqa.markdownEditor",
           "group": "navigation@3"
         }
       ]
     },
     "keybindings": [
       {
-        "command": "kiro.switchToLivePreview",
+        "command": "fabriqa.switchToLivePreview",
         "key": "ctrl+shift+p",
         "mac": "cmd+shift+p",
-        "when": "activeCustomEditorId == kiro.markdownEditor"
+        "when": "activeCustomEditorId == fabriqa.markdownEditor"
       },
       {
-        "command": "kiro.switchToSource",
+        "command": "fabriqa.switchToSource",
         "key": "ctrl+shift+s",
         "mac": "cmd+shift+s",
-        "when": "activeCustomEditorId == kiro.markdownEditor"
+        "when": "activeCustomEditorId == fabriqa.markdownEditor"
       },
       {
-        "command": "kiro.switchToReading",
+        "command": "fabriqa.switchToReading",
         "key": "ctrl+shift+r",
         "mac": "cmd+shift+r",
-        "when": "activeCustomEditorId == kiro.markdownEditor"
+        "when": "activeCustomEditorId == fabriqa.markdownEditor"
       }
     ],
     "configuration": {
-      "title": "Kiro Markdown Editor",
+      "title": "Fabriqa.ai Markdown Editor",
       "properties": {
-        "kiro.configFile": {
+        "fabriqa.configFile": {
           "type": "string",
           "default": ".vscode/markdown-extension-config.json",
           "description": "Path to the markdown extension configuration file"
         },
-        "kiro.defaultMode": {
+        "fabriqa.defaultMode": {
           "type": "string",
           "enum": [
             "livePreview",
@@ -188,7 +188,7 @@
           "default": "livePreview",
           "description": "Default editing mode when opening markdown files"
         },
-        "kiro.theme": {
+        "fabriqa.theme": {
           "type": "string",
           "enum": [
             "auto",
@@ -198,21 +198,21 @@
           "default": "auto",
           "description": "Theme for the markdown editor"
         },
-        "kiro.fontSize": {
+        "fabriqa.fontSize": {
           "type": "number",
           "default": 14,
           "minimum": 8,
           "maximum": 32,
           "description": "Font size for the editor"
         },
-        "kiro.lineHeight": {
+        "fabriqa.lineHeight": {
           "type": "number",
           "default": 1.6,
           "minimum": 1.0,
           "maximum": 3.0,
           "description": "Line height multiplier"
         },
-        "kiro.autoSave": {
+        "fabriqa.autoSave": {
           "type": "boolean",
           "default": true,
           "description": "Automatically save changes"

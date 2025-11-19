@@ -17,7 +17,7 @@ export function registerCommands(
 ): void {
   // Open markdown file with custom editor
   context.subscriptions.push(
-    vscode.commands.registerCommand('kiro.openMarkdownEditor', async (filePathOrUri?: string | vscode.Uri) => {
+    vscode.commands.registerCommand('fabriqa.openMarkdownEditor', async (filePathOrUri?: string | vscode.Uri) => {
       try {
         let uri: vscode.Uri;
 
@@ -30,7 +30,7 @@ export function registerCommands(
           const selected = await vscode.window.showOpenDialog({
             canSelectMany: false,
             filters: { 'Markdown': ['md'] },
-            openLabel: 'Open with Kiro Editor'
+            openLabel: 'Open with Fabriqa Editor'
           });
 
           if (!selected || selected.length === 0) {
@@ -41,10 +41,10 @@ export function registerCommands(
         }
 
         // Open with custom editor
-        await vscode.commands.executeCommand('vscode.openWith', uri, 'kiro.markdownEditor');
-        Logger.info(`Opened file with Kiro editor: ${uri.fsPath}`);
+        await vscode.commands.executeCommand('vscode.openWith', uri, 'fabriqa.markdownEditor');
+        Logger.info(`Opened file with Fabriqa editor: ${uri.fsPath}`);
       } catch (error) {
-        Logger.error('Failed to open file with Kiro editor', error);
+        Logger.error('Failed to open file with Fabriqa editor', error);
         vscode.window.showErrorMessage(`Failed to open file: ${error}`);
       }
     })
@@ -52,36 +52,36 @@ export function registerCommands(
 
   // Switch to Live Preview mode
   context.subscriptions.push(
-    vscode.commands.registerCommand('kiro.switchToLivePreview', async () => {
+    vscode.commands.registerCommand('fabriqa.switchToLivePreview', async () => {
       await editorProvider.switchMode('livePreview');
     })
   );
 
   // Switch to Source mode
   context.subscriptions.push(
-    vscode.commands.registerCommand('kiro.switchToSource', async () => {
+    vscode.commands.registerCommand('fabriqa.switchToSource', async () => {
       await editorProvider.switchMode('source');
     })
   );
 
   // Switch to Reading mode
   context.subscriptions.push(
-    vscode.commands.registerCommand('kiro.switchToReading', async () => {
+    vscode.commands.registerCommand('fabriqa.switchToReading', async () => {
       await editorProvider.switchMode('reading');
     })
   );
 
   // Refresh tree view
   context.subscriptions.push(
-    vscode.commands.registerCommand('kiro.refreshTree', () => {
+    vscode.commands.registerCommand('fabriqa.refreshTree', () => {
       treeProvider.refresh();
-      vscode.window.showInformationMessage('Refreshed Kiro tree view');
+      vscode.window.showInformationMessage('Refreshed Fabriqa tree view');
     })
   );
 
   // Create new file
   context.subscriptions.push(
-    vscode.commands.registerCommand('kiro.createFile', async (treeItem?: any) => {
+    vscode.commands.registerCommand('fabriqa.createFile', async (treeItem?: any) => {
       try {
         // Get section from tree item if available
         const section = treeItem?.section;
@@ -148,7 +148,7 @@ export function registerCommands(
 
         // Open the file
         const uri = vscode.Uri.file(filePath);
-        await vscode.commands.executeCommand('vscode.openWith', uri, 'kiro.markdownEditor');
+        await vscode.commands.executeCommand('vscode.openWith', uri, 'fabriqa.markdownEditor');
 
         Logger.info(`Created new file: ${filePath}`);
         vscode.window.showInformationMessage(`Created ${fileName}.md`);
@@ -161,7 +161,7 @@ export function registerCommands(
 
   // Delete file
   context.subscriptions.push(
-    vscode.commands.registerCommand('kiro.deleteFile', async (treeItem?: any) => {
+    vscode.commands.registerCommand('fabriqa.deleteFile', async (treeItem?: any) => {
       try {
         const file = treeItem?.file;
         if (!file) {
@@ -197,7 +197,7 @@ export function registerCommands(
 
   // Rename file
   context.subscriptions.push(
-    vscode.commands.registerCommand('kiro.renameFile', async (treeItem?: any) => {
+    vscode.commands.registerCommand('fabriqa.renameFile', async (treeItem?: any) => {
       try {
         const file = treeItem?.file;
         if (!file) {
@@ -252,14 +252,14 @@ export function registerCommands(
 
   // Collapse section
   context.subscriptions.push(
-    vscode.commands.registerCommand('kiro.collapseSection', async () => {
+    vscode.commands.registerCommand('fabriqa.collapseSection', async () => {
       vscode.window.showInformationMessage('Collapse section (not yet implemented)');
     })
   );
 
   // Expand section
   context.subscriptions.push(
-    vscode.commands.registerCommand('kiro.expandSection', async () => {
+    vscode.commands.registerCommand('fabriqa.expandSection', async () => {
       vscode.window.showInformationMessage('Expand section (not yet implemented)');
     })
   );

@@ -44,7 +44,7 @@ export class ConfigManager {
    * Get the full path to the config file
    */
   private getConfigFilePath(): string {
-    const configSetting = vscode.workspace.getConfiguration('kiro').get<string>('configFile');
+    const configSetting = vscode.workspace.getConfiguration('fabriqa').get<string>('configFile');
     const relativePath = configSetting || '.vscode/markdown-extension-config.json';
     return relativePath;
   }
@@ -71,7 +71,7 @@ export class ConfigManager {
     } catch (error) {
       Logger.error('Failed to load config file', error);
       vscode.window.showErrorMessage(
-        `Failed to load Kiro config file: ${error}`
+        `Failed to load Fabriqa config file: ${error}`
       );
       return this.createDefaultConfig();
     }
@@ -199,11 +199,11 @@ export class ConfigManager {
 
       if (errorCount > 0) {
         vscode.window.showErrorMessage(
-          `Kiro config has ${errorCount} error(s) and ${warningCount} warning(s). Check output for details.`
+          `Fabriqa config has ${errorCount} error(s) and ${warningCount} warning(s). Check output for details.`
         );
       } else if (warningCount > 0) {
         vscode.window.showWarningMessage(
-          `Kiro config has ${warningCount} warning(s). Check output for details.`
+          `Fabriqa config has ${warningCount} warning(s). Check output for details.`
         );
       }
 
@@ -246,7 +246,7 @@ export class ConfigManager {
 
     Logger.info(`Created default config file at ${absoluteConfigPath}`);
     vscode.window.showInformationMessage(
-      'Created default Kiro configuration file'
+      'Created default Fabriqa configuration file'
     );
 
     // Reload config

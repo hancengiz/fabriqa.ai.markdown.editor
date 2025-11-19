@@ -32,11 +32,11 @@ export class MarkdownTreeItem extends vscode.TreeItem {
       this.tooltip = file?.relativePath;
       this.resourceUri = file ? vscode.Uri.file(file.absolutePath) : undefined;
 
-      // Make file clickable - open with Kiro editor
+      // Make file clickable - open with Fabriqa editor
       if (file) {
         this.command = {
-          command: 'kiro.openMarkdownEditor',
-          title: 'Open with Kiro Editor',
+          command: 'fabriqa.openMarkdownEditor',
+          title: 'Open with Fabriqa Editor',
           arguments: [file.absolutePath]
         };
       }
@@ -54,7 +54,7 @@ export class MarkdownTreeItem extends vscode.TreeItem {
 }
 
 /**
- * TreeView provider for the Kiro sidebar
+ * TreeView provider for the Fabriqa sidebar
  */
 export class MarkdownTreeProvider implements vscode.TreeDataProvider<MarkdownTreeItem> {
   private _onDidChangeTreeData = new vscode.EventEmitter<MarkdownTreeItem | undefined | void>();

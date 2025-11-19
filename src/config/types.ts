@@ -1,5 +1,5 @@
 /**
- * Configuration file structure for Kiro Markdown Editor
+ * Configuration file structure for Fabriqa Markdown Editor
  * Located at .vscode/markdown-extension-config.json
  */
 

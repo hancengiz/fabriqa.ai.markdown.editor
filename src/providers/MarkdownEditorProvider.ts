@@ -20,7 +20,7 @@ export interface WebviewMessage {
  * Custom editor provider for markdown files
  */
 export class MarkdownEditorProvider implements vscode.CustomTextEditorProvider {
-  private static readonly viewType = 'kiro.markdownEditor';
+  private static readonly viewType = 'fabriqa.markdownEditor';
   private activeWebviews = new Map<string, { panel: vscode.WebviewPanel; mode: EditorMode }>();
 
   constructor(
@@ -48,7 +48,7 @@ export class MarkdownEditorProvider implements vscode.CustomTextEditorProvider {
     };
 
     // Get default mode from settings
-    const config = vscode.workspace.getConfiguration('kiro');
+    const config = vscode.workspace.getConfiguration('fabriqa');
     const defaultMode = config.get<EditorMode>('defaultMode', 'livePreview');
 
     // Track this webview
@@ -150,7 +150,7 @@ export class MarkdownEditorProvider implements vscode.CustomTextEditorProvider {
       case 'error':
         // Error from webview
         Logger.error(`[Webview] ${message.message}`, message.error);
-        vscode.window.showErrorMessage(`Kiro Editor Error: ${message.message}`);
+        vscode.window.showErrorMessage(`Fabriqa Editor Error: ${message.message}`);
         break;
 
       default:
@@ -191,7 +191,7 @@ export class MarkdownEditorProvider implements vscode.CustomTextEditorProvider {
     const themeType = theme === vscode.ColorThemeKind.Light ? 'light' : 'dark';
 
     // Get configuration
-    const config = vscode.workspace.getConfiguration('kiro');
+    const config = vscode.workspace.getConfiguration('fabriqa');
     const defaultMode = config.get<EditorMode>('defaultMode', 'livePreview');
     const fontSize = config.get<number>('fontSize', 14);
     const lineHeight = config.get<number>('lineHeight', 1.6);
@@ -202,7 +202,7 @@ export class MarkdownEditorProvider implements vscode.CustomTextEditorProvider {
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta http-equiv="Content-Security-Policy" content="default-src 'none'; style-src ${cspSource} 'unsafe-inline'; script-src ${cspSource};">
-  <title>Kiro Markdown Editor</title>
+  <title>Fabriqa Markdown Editor</title>
   <style>
     * {
       margin: 0;
@@ -328,7 +328,7 @@ export class MarkdownEditorProvider implements vscode.CustomTextEditorProvider {
     // Find the webview for this document
     const webviewData = this.activeWebviews.get(activeEditor.document.uri.toString());
     if (!webviewData) {
-      vscode.window.showWarningMessage('Active editor is not a Kiro markdown editor');
+      vscode.window.showWarningMessage('Active editor is not a Fabriqa markdown editor');
       return;
     }
 
