@@ -46,12 +46,21 @@ export class MarkdownTreeItem extends vscode.TreeItem {
       this.tooltip = file?.relativePath;
       this.resourceUri = file ? vscode.Uri.file(file.absolutePath) : undefined;
 
-      // Make file clickable - open with Fabriqa editor
+      // Set resource URI for automatic preview/permanent mode handling
+      // VS Code will handle single-click (preview) vs double-click (permanent) automatically
+      // when resourceUri is set without a command
+
+      // However, we need to force opening with Fabriqa editor, so we use a command
+      // The command now supports preview mode parameter
       if (file) {
         this.command = {
-          command: 'fabriqa.openMarkdownEditor',
+          command: 'vscode.openWith',
           title: 'Open with Fabriqa Editor',
-          arguments: [file.absolutePath]
+          arguments: [
+            vscode.Uri.file(file.absolutePath),
+            'fabriqa.markdownEditor',
+            { preview: true, preserveFocus: false }
+          ]
         };
       }
 

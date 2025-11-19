@@ -18,7 +18,7 @@ export function registerCommands(
 ): void {
   // Open markdown file with custom editor
   context.subscriptions.push(
-    vscode.commands.registerCommand('fabriqa.openMarkdownEditor', async (filePathOrUri?: string | vscode.Uri) => {
+    vscode.commands.registerCommand('fabriqa.openMarkdownEditor', async (filePathOrUri?: string | vscode.Uri, preview?: boolean) => {
       try {
         let uri: vscode.Uri;
 
@@ -42,8 +42,13 @@ export function registerCommands(
         }
 
         // Open with custom editor
-        await vscode.commands.executeCommand('vscode.openWith', uri, 'fabriqa.markdownEditor');
-        Logger.info(`Opened file with fabriqa editor: ${uri.fsPath}`);
+        // If preview is true, VS Code will open in preview mode (single-click)
+        // If preview is false or undefined, it opens permanently (double-click)
+        await vscode.commands.executeCommand('vscode.openWith', uri, 'fabriqa.markdownEditor', {
+          preview: preview !== false // Default to preview mode
+        });
+
+        Logger.info(`Opened file with fabriqa editor (preview: ${preview}): ${uri.fsPath}`);
       } catch (error) {
         Logger.error('Failed to open file with fabriqa editor', error);
         vscode.window.showErrorMessage(`Failed to open file: ${error}`);
