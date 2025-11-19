@@ -2,6 +2,7 @@ import * as vscode from 'vscode';
 import * as path from 'path';
 import { ConfigManager } from '../config/ConfigManager';
 import { Logger } from '../utils/Logger';
+import { WebviewLogger } from '../utils/WebviewLogger';
 
 /**
  * Editor mode types
@@ -21,7 +22,8 @@ export interface WebviewMessage {
  */
 export class MarkdownEditorProvider implements vscode.CustomTextEditorProvider {
   private static readonly viewType = 'fabriqa.markdownEditor';
-  private activeWebviews = new Map<string, { panel: vscode.WebviewPanel; mode: EditorMode }>();
+  private activeWebviews = new Map<string, { panel: vscode.WebviewPanel; mode: EditorMode; isUpdatingFromWebview: boolean }>();
+  private currentActivePanel: vscode.WebviewPanel | null = null;
 
   constructor(
     private readonly context: vscode.ExtensionContext,
@@ -54,14 +56,28 @@ export class MarkdownEditorProvider implements vscode.CustomTextEditorProvider {
     // Track this webview
     this.activeWebviews.set(document.uri.toString(), {
       panel: webviewPanel,
-      mode: defaultMode
+      mode: defaultMode,
+      isUpdatingFromWebview: false
+    });
+
+    // Set this panel as currently active
+    this.currentActivePanel = webviewPanel;
+
+    // Track when this panel becomes active/inactive
+    webviewPanel.onDidChangeViewState(e => {
+      if (e.webviewPanel.active) {
+        this.currentActivePanel = e.webviewPanel;
+        Logger.info(`Webview panel became active for ${document.uri.fsPath}`);
+      }
     });
 
     // Set initial HTML content
     webviewPanel.webview.html = this.getHtmlForWebview(webviewPanel.webview);
 
-    // Send initial document content to webview
+    // Send initial document content and theme to webview
     this.updateWebview(webviewPanel.webview, document);
+    this.sendThemeUpdate(webviewPanel.webview); // Send initial theme
+    this.sendFileInfo(webviewPanel.webview, document);
 
     // Handle messages from webview
     webviewPanel.webview.onDidReceiveMessage(
@@ -70,10 +86,14 @@ export class MarkdownEditorProvider implements vscode.CustomTextEditorProvider {
       this.context.subscriptions
     );
 
-    // Update webview when document changes
+    // Update webview when document changes (but not when the change came from the webview)
     const changeDocumentSubscription = vscode.workspace.onDidChangeTextDocument(e => {
       if (e.document.uri.toString() === document.uri.toString()) {
-        this.updateWebview(webviewPanel.webview, document);
+        const webviewData = this.activeWebviews.get(document.uri.toString());
+        // Only update webview if the change didn't come from the webview itself
+        if (webviewData && !webviewData.isUpdatingFromWebview) {
+          this.updateWebview(webviewPanel.webview, document);
+        }
       }
     });
 
@@ -87,6 +107,27 @@ export class MarkdownEditorProvider implements vscode.CustomTextEditorProvider {
     // Handle theme changes
     const changeThemeSubscription = vscode.window.onDidChangeActiveColorTheme(() => {
       this.sendThemeUpdate(webviewPanel.webview);
+    });
+
+    // Handle configuration changes
+    const changeConfigSubscription = vscode.workspace.onDidChangeConfiguration(e => {
+      if (e.affectsConfiguration('fabriqa.theme')) {
+        this.sendThemeUpdate(webviewPanel.webview);
+      }
+    });
+
+    // Update cleanup to dispose config subscription
+    const originalDispose = webviewPanel.onDidDispose;
+    webviewPanel.onDidDispose(() => {
+      changeDocumentSubscription.dispose();
+      changeThemeSubscription.dispose();
+      changeConfigSubscription.dispose();
+      this.activeWebviews.delete(document.uri.toString());
+
+      // Clear current active panel if this was it
+      if (this.currentActivePanel === webviewPanel) {
+        this.currentActivePanel = null;
+      }
     });
   }
 
@@ -105,12 +146,58 @@ export class MarkdownEditorProvider implements vscode.CustomTextEditorProvider {
    * Send theme update to webview
    */
   private sendThemeUpdate(webview: vscode.Webview): void {
-    const theme = vscode.window.activeColorTheme.kind;
-    const themeType = theme === vscode.ColorThemeKind.Light ? 'light' : 'dark';
+    const config = vscode.workspace.getConfiguration('fabriqa');
+    const themeSetting = config.get<string>('theme');
 
+    // Check if this is a default value or user-set value
+    const inspected = config.inspect<string>('theme');
+    Logger.info(`[Theme] ==== SEND THEME UPDATE ====`);
+    Logger.info(`[Theme] Config default: "${inspected?.defaultValue}"`);
+    Logger.info(`[Theme] Config global: "${inspected?.globalValue}"`);
+    Logger.info(`[Theme] Config workspace: "${inspected?.workspaceValue}"`);
+    Logger.info(`[Theme] Resolved value: "${themeSetting}"`);
+
+    // Determine actual theme to use - default to light if not set or invalid
+    let themeType: string;
+    if (!themeSetting || themeSetting === 'auto') {
+      // If not set or old 'auto' value, default to light
+      themeType = 'light';
+      Logger.info(`[Theme] DECISION: No theme or 'auto' → LIGHT`);
+    } else if (themeSetting === 'vscode') {
+      // Follow VS Code's theme
+      const vsCodeTheme = vscode.window.activeColorTheme.kind;
+      themeType = vsCodeTheme === vscode.ColorThemeKind.Light ? 'light' : 'dark';
+      Logger.info(`[Theme] DECISION: Following VS Code (kind=${vsCodeTheme}) → ${themeType.toUpperCase()}`);
+    } else {
+      // Use user's explicit choice (light or dark)
+      themeType = themeSetting;
+      Logger.info(`[Theme] DECISION: Explicit setting → ${themeType.toUpperCase()}`);
+    }
+
+    Logger.info(`[Theme] POSTING themeChange message with theme: ${themeType}`);
     webview.postMessage({
       type: 'themeChange',
       theme: themeType
+    });
+  }
+
+
+  /**
+   * Send file info to webview
+   */
+  private sendFileInfo(webview: vscode.Webview, document: vscode.TextDocument): void {
+    const workspaceFolder = vscode.workspace.workspaceFolders?.[0];
+    const fileName = path.basename(document.uri.fsPath);
+    let relativePath = document.uri.fsPath;
+
+    if (workspaceFolder) {
+      relativePath = path.relative(workspaceFolder.uri.fsPath, document.uri.fsPath);
+    }
+
+    webview.postMessage({
+      type: 'fileInfo',
+      fileName: fileName,
+      relativePath: relativePath
     });
   }
 
@@ -125,7 +212,15 @@ export class MarkdownEditorProvider implements vscode.CustomTextEditorProvider {
     switch (message.type) {
       case 'edit':
         // Apply edit from webview to document
-        await this.applyEdit(document, message.content);
+        const webviewData = this.activeWebviews.get(document.uri.toString());
+        if (webviewData) {
+          webviewData.isUpdatingFromWebview = true;
+          await this.applyEdit(document, message.content);
+          // Reset flag after a short delay to allow the edit to complete
+          setTimeout(() => {
+            webviewData.isUpdatingFromWebview = false;
+          }, 100);
+        }
         break;
 
       case 'ready':
@@ -135,9 +230,9 @@ export class MarkdownEditorProvider implements vscode.CustomTextEditorProvider {
 
       case 'modeChanged':
         // Track mode change from webview
-        const webviewData = this.activeWebviews.get(document.uri.toString());
-        if (webviewData && message.mode) {
-          webviewData.mode = message.mode;
+        const modeWebviewData = this.activeWebviews.get(document.uri.toString());
+        if (modeWebviewData && message.mode) {
+          modeWebviewData.mode = message.mode;
           Logger.info(`Mode changed to ${message.mode} for ${document.uri.fsPath}`);
         }
         break;
@@ -145,12 +240,19 @@ export class MarkdownEditorProvider implements vscode.CustomTextEditorProvider {
       case 'log':
         // Log message from webview
         Logger.info(`[Webview] ${message.message}`);
+        WebviewLogger.log('log', message.message, message.data);
         break;
 
       case 'error':
         // Error from webview
         Logger.error(`[Webview] ${message.message}`, message.error);
+        WebviewLogger.log('error', message.message, message.error);
         vscode.window.showErrorMessage(`Fabriqa Editor Error: ${message.message}`);
+        break;
+
+      case 'console':
+        // Console message from webview (for debug logging)
+        WebviewLogger.log(message.level || 'log', message.message, message.data);
         break;
 
       default:
@@ -172,6 +274,7 @@ export class MarkdownEditorProvider implements vscode.CustomTextEditorProvider {
     );
 
     await vscode.workspace.applyEdit(edit);
+    // Document is now dirty - user can save with Cmd+S like normal VS Code editors
   }
 
   /**
@@ -186,15 +289,38 @@ export class MarkdownEditorProvider implements vscode.CustomTextEditorProvider {
     // Get CSP source
     const cspSource = webview.cspSource;
 
-    // Get theme
-    const theme = vscode.window.activeColorTheme.kind;
-    const themeType = theme === vscode.ColorThemeKind.Light ? 'light' : 'dark';
-
     // Get configuration
     const config = vscode.workspace.getConfiguration('fabriqa');
     const defaultMode = config.get<EditorMode>('defaultMode', 'livePreview');
     const fontSize = config.get<number>('fontSize', 14);
     const lineHeight = config.get<number>('lineHeight', 1.6);
+    const themeSetting = config.get<string>('theme');
+
+    // Log all theme-related info for debugging
+    Logger.info(`[Theme] ==== THEME CONFIGURATION DEBUG ====`);
+    Logger.info(`[Theme] Raw theme setting from config: "${themeSetting}"`);
+    Logger.info(`[Theme] Type of theme setting: ${typeof themeSetting}`);
+    Logger.info(`[Theme] VS Code current theme kind: ${vscode.window.activeColorTheme.kind}`);
+    Logger.info(`[Theme] VS Code theme name: ${vscode.window.activeColorTheme.name}`);
+
+    // Determine actual theme to use - default to light if not set or invalid
+    let themeType: string;
+    if (!themeSetting || themeSetting === 'auto') {
+      // If not set or old 'auto' value, default to light
+      themeType = 'light';
+      Logger.info(`[Theme] DECISION: No theme or 'auto' → defaulting to LIGHT`);
+    } else if (themeSetting === 'vscode') {
+      // Follow VS Code's theme
+      const vsCodeTheme = vscode.window.activeColorTheme.kind;
+      themeType = vsCodeTheme === vscode.ColorThemeKind.Light ? 'light' : 'dark';
+      Logger.info(`[Theme] DECISION: Following VS Code (kind=${vsCodeTheme}) → ${themeType.toUpperCase()}`);
+    } else {
+      // Use user's explicit choice (light or dark)
+      themeType = themeSetting;
+      Logger.info(`[Theme] DECISION: Using explicit setting → ${themeType.toUpperCase()}`);
+    }
+
+    Logger.info(`[Theme] FINAL: HTML body will have data-theme="${themeType}"`);
 
     return `<!DOCTYPE html>
 <html lang="en">
@@ -221,11 +347,33 @@ export class MarkdownEditorProvider implements vscode.CustomTextEditorProvider {
       line-height: ${lineHeight};
       color: var(--vscode-editor-foreground);
       background-color: var(--vscode-editor-background);
+      display: flex;
+      flex-direction: column;
+    }
+
+    #filename-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 8px 16px;
+      background: var(--vscode-editor-background);
+      border-bottom: 1px solid var(--vscode-panel-border, #444);
+      font-size: 13px;
+    }
+
+    #filename-title {
+      font-weight: 600;
+      color: var(--vscode-editor-foreground);
+    }
+
+    #filename-path {
+      font-size: 11px;
+      color: var(--vscode-descriptionForeground, #888);
+      opacity: 0.7;
     }
 
     #editor {
-      width: 100%;
-      height: 100%;
+      flex: 1;
       overflow: auto;
     }
 
@@ -235,6 +383,29 @@ export class MarkdownEditorProvider implements vscode.CustomTextEditorProvider {
 
     .cm-scroller {
       overflow: auto;
+    }
+
+    /* Theme-specific CSS variables - use !important to override VS Code defaults */
+    body[data-theme="light"] {
+      --vscode-editor-foreground: #000000 !important;
+      --vscode-editor-background: #ffffff !important;
+      --vscode-editorCursor-foreground: #000000 !important;
+      --vscode-editor-selectionBackground: #add6ff !important;
+      --vscode-textLink-foreground: #006ab1 !important;
+      --vscode-symbolIcon-classForeground: #267f99 !important;
+      --vscode-textCodeBlock-background: #f5f5f5 !important;
+      --vscode-foreground: #3b3b3b !important;
+    }
+
+    body[data-theme="dark"] {
+      --vscode-editor-foreground: #d4d4d4 !important;
+      --vscode-editor-background: #1e1e1e !important;
+      --vscode-editorCursor-foreground: #aeafad !important;
+      --vscode-editor-selectionBackground: #264f78 !important;
+      --vscode-textLink-foreground: #3794ff !important;
+      --vscode-symbolIcon-classForeground: #4ec9b0 !important;
+      --vscode-textCodeBlock-background: #0a0a0a !important;
+      --vscode-foreground: #cccccc !important;
     }
 
     /* CodeMirror theme integration */
@@ -307,6 +478,10 @@ export class MarkdownEditorProvider implements vscode.CustomTextEditorProvider {
   </style>
 </head>
 <body data-theme="${themeType}" data-mode="${defaultMode}">
+  <div id="filename-header">
+    <span id="filename-title"></span>
+    <span id="filename-path"></span>
+  </div>
   <div id="editor">
     <div class="loading">Loading editor...</div>
   </div>
@@ -319,16 +494,28 @@ export class MarkdownEditorProvider implements vscode.CustomTextEditorProvider {
    * Switch editor mode for the active editor
    */
   public async switchMode(mode: EditorMode): Promise<void> {
-    const activeEditor = vscode.window.activeTextEditor;
-    if (!activeEditor) {
-      vscode.window.showWarningMessage('No active editor to switch mode');
+    // Use the currently active webview panel instead of activeTextEditor
+    if (!this.currentActivePanel) {
+      vscode.window.showWarningMessage('No active Fabriqa markdown editor to switch mode');
       return;
     }
 
-    // Find the webview for this document
-    const webviewData = this.activeWebviews.get(activeEditor.document.uri.toString());
+    // Find the webview data for this panel
+    let foundUri: string | null = null;
+    for (const [uri, data] of this.activeWebviews.entries()) {
+      if (data.panel === this.currentActivePanel) {
+        foundUri = uri;
+        break;
+      }
+    }
+
+    if (!foundUri) {
+      vscode.window.showWarningMessage('Could not find webview data for active editor');
+      return;
+    }
+
+    const webviewData = this.activeWebviews.get(foundUri);
     if (!webviewData) {
-      vscode.window.showWarningMessage('Active editor is not a Fabriqa markdown editor');
       return;
     }
 
@@ -340,19 +527,24 @@ export class MarkdownEditorProvider implements vscode.CustomTextEditorProvider {
 
     // Update tracked mode
     webviewData.mode = mode;
-    Logger.info(`Switched to ${mode} mode for ${activeEditor.document.uri.fsPath}`);
+    Logger.info(`Switched to ${mode} mode`);
   }
 
   /**
    * Get the current mode of the active editor
    */
   public getCurrentMode(): EditorMode | null {
-    const activeEditor = vscode.window.activeTextEditor;
-    if (!activeEditor) {
+    if (!this.currentActivePanel) {
       return null;
     }
 
-    const webviewData = this.activeWebviews.get(activeEditor.document.uri.toString());
-    return webviewData?.mode || null;
+    // Find the webview data for the current active panel
+    for (const [_, data] of this.activeWebviews.entries()) {
+      if (data.panel === this.currentActivePanel) {
+        return data.mode;
+      }
+    }
+
+    return null;
   }
 }

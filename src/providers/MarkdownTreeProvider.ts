@@ -48,7 +48,6 @@ export class MarkdownTreeItem extends vscode.TreeItem {
       }
     } else if (itemType === 'description') {
       this.iconPath = new vscode.ThemeIcon('info');
-      this.description = section?.description;
     }
   }
 }
@@ -119,18 +118,6 @@ export class MarkdownTreeProvider implements vscode.TreeDataProvider<MarkdownTre
    */
   private getFilesForSection(section: ValidatedSection): MarkdownTreeItem[] {
     const items: MarkdownTreeItem[] = [];
-
-    // Add description as first item if present
-    if (section.description) {
-      const descItem = new MarkdownTreeItem(
-        section.description,
-        vscode.TreeItemCollapsibleState.None,
-        'description',
-        section
-      );
-      descItem.contextValue = 'description';
-      items.push(descItem);
-    }
 
     // Add files
     for (const file of section.files) {

@@ -9,8 +9,10 @@ import DOMPurify from 'dompurify';
 export const readingModePlugin = ViewPlugin.fromClass(
   class {
     private htmlContainer: HTMLDivElement | null = null;
+    private view: EditorView | null = null;
 
     constructor(view: EditorView) {
+      this.view = view;
       this.renderHTML(view);
     }
 
@@ -21,10 +23,21 @@ export const readingModePlugin = ViewPlugin.fromClass(
     }
 
     destroy() {
+      // Restore CodeMirror content visibility
+      if (this.view) {
+        const cmContent = this.view.dom.querySelector('.cm-content');
+        if (cmContent) {
+          (cmContent as HTMLElement).style.display = '';
+        }
+      }
+
+      // Remove HTML container
       if (this.htmlContainer) {
         this.htmlContainer.remove();
         this.htmlContainer = null;
       }
+
+      this.view = null;
     }
 
     renderHTML(view: EditorView) {

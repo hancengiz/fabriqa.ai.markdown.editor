@@ -4,6 +4,7 @@
   "description": "Obsidian-like markdown editor with Live Preview, Source, and Reading modes",
   "version": "0.1.0",
   "publisher": "fabriqa",
+  "icon": "resources/icon.svg",
   "engines": {
     "vscode": "^1.85.0"
   },
@@ -29,11 +30,20 @@
         "priority": "option"
       }
     ],
+    "viewsContainers": {
+      "activitybar": [
+        {
+          "id": "fabriqa",
+          "title": "Fabriqa",
+          "icon": "resources/activity-bar-icon.svg"
+        }
+      ]
+    },
     "views": {
-      "explorer": [
+      "fabriqa": [
         {
           "id": "fabriqa.markdownTree",
-          "name": "FABRIQA",
+          "name": "Markdown Files",
           "icon": "resources/icon.svg",
           "contextualTitle": "Fabriqa Markdown"
         }
@@ -96,6 +106,23 @@
         "command": "fabriqa.expandSection",
         "title": "Expand Section",
         "category": "Fabriqa"
+      },
+      {
+        "command": "fabriqa.showWebviewLogs",
+        "title": "Show Webview Console Logs",
+        "category": "Fabriqa",
+        "icon": "$(output)"
+      },
+      {
+        "command": "fabriqa.showEditorSettings",
+        "title": "Editor Settings",
+        "category": "Fabriqa",
+        "icon": "resources/fabriqa-toolbar-icon.svg"
+      },
+      {
+        "command": "fabriqa.changeTheme",
+        "title": "Change Theme",
+        "category": "Fabriqa"
       }
     ],
     "menus": {
@@ -135,19 +162,9 @@
       ],
       "editor/title": [
         {
-          "command": "fabriqa.switchToLivePreview",
+          "command": "fabriqa.showEditorSettings",
           "when": "activeCustomEditorId == fabriqa.markdownEditor",
           "group": "navigation@1"
-        },
-        {
-          "command": "fabriqa.switchToSource",
-          "when": "activeCustomEditorId == fabriqa.markdownEditor",
-          "group": "navigation@2"
-        },
-        {
-          "command": "fabriqa.switchToReading",
-          "when": "activeCustomEditorId == fabriqa.markdownEditor",
-          "group": "navigation@3"
         }
       ]
     },
@@ -179,6 +196,47 @@
           "default": ".vscode/markdown-extension-config.json",
           "description": "Path to the markdown extension configuration file"
         },
+        "fabriqa.sidebarSections": {
+          "type": "array",
+          "default": [
+            {
+              "id": "specs",
+              "title": "SPECS",
+              "collapsed": false,
+              "filePatterns": ["specs/**/*.md"]
+            }
+          ],
+          "description": "Configure which sections appear in the FABRIQA sidebar. Each section can have: id, title, collapsed, filePatterns (glob), and description",
+          "items": {
+            "type": "object",
+            "properties": {
+              "id": {
+                "type": "string",
+                "description": "Unique identifier for the section"
+              },
+              "title": {
+                "type": "string",
+                "description": "Display title for the section"
+              },
+              "collapsed": {
+                "type": "boolean",
+                "description": "Whether the section starts collapsed"
+              },
+              "filePatterns": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                },
+                "description": "Glob patterns to match files (e.g., 'docs/**/*.md')"
+              },
+              "description": {
+                "type": "string",
+                "description": "Optional description shown for empty sections"
+              }
+            },
+            "required": ["id", "title"]
+          }
+        },
         "fabriqa.defaultMode": {
           "type": "string",
           "enum": [
@@ -192,12 +250,12 @@
         "fabriqa.theme": {
           "type": "string",
           "enum": [
-            "auto",
             "light",
-            "dark"
+            "dark",
+            "vscode"
           ],
-          "default": "auto",
-          "description": "Theme for the markdown editor"
+          "default": "light",
+          "description": "Color theme for the markdown editor (light, dark, or follow VS Code)"
         },
         "fabriqa.fontSize": {
           "type": "number",
@@ -212,11 +270,6 @@
           "minimum": 1.0,
           "maximum": 3.0,
           "description": "Line height multiplier"
-        },
-        "fabriqa.autoSave": {
-          "type": "boolean",
-          "default": true,
-          "description": "Automatically save changes"
         }
       }
     }

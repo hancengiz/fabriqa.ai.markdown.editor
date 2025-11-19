@@ -10,6 +10,18 @@ import { foldGutter, indentOnInput, syntaxHighlighting as syntaxHighlightingFace
 import { lintKeymap } from '@codemirror/lint';
 import { livePreviewPlugin } from './editors/livePreviewMode';
 import { readingModePlugin } from './editors/readingMode';
+import {
+  toggleBold,
+  toggleItalic,
+  toggleInlineCode,
+  toggleStrikethrough,
+  insertLink,
+  insertCodeBlock,
+  toggleHeading,
+  toggleBulletList,
+  toggleNumberedList,
+  toggleBlockquote
+} from './editors/markdownCommands';
 
 // Basic setup extensions (equivalent to basicSetup)
 const basicExtensions = [
@@ -30,6 +42,18 @@ const basicExtensions = [
   highlightActiveLine(),
   highlightSelectionMatches(),
   keymap.of([
+    // Markdown formatting shortcuts (Obsidian-style)
+    { key: 'Mod-b', run: toggleBold },
+    { key: 'Mod-i', run: toggleItalic },
+    { key: 'Mod-e', run: toggleInlineCode },
+    { key: 'Mod-k', run: insertLink },
+    { key: 'Mod-Shift-e', run: insertCodeBlock },
+    { key: 'Mod-Shift-x', run: toggleStrikethrough },
+    { key: 'Mod-Shift-h', run: toggleHeading },
+    { key: 'Mod-Shift-8', run: toggleBulletList },
+    { key: 'Mod-Shift-7', run: toggleNumberedList },
+    { key: 'Mod-Shift-.', run: toggleBlockquote },
+    // Default keymaps
     ...closeBracketsKeymap,
     ...defaultKeymap,
     ...searchKeymap,
@@ -65,6 +89,57 @@ try {
 }
 
 /**
+ * Intercept console methods to send to extension logger
+ */
+function setupConsoleLogging() {
+  const originalConsole = {
+    log: console.log,
+    info: console.info,
+    warn: console.warn,
+    error: console.error
+  };
+
+  console.log = (...args: any[]) => {
+    originalConsole.log(...args);
+    vscode.postMessage({
+      type: 'console',
+      level: 'log',
+      message: args.map(a => typeof a === 'object' ? JSON.stringify(a) : String(a)).join(' ')
+    });
+  };
+
+  console.info = (...args: any[]) => {
+    originalConsole.info(...args);
+    vscode.postMessage({
+      type: 'console',
+      level: 'info',
+      message: args.map(a => typeof a === 'object' ? JSON.stringify(a) : String(a)).join(' ')
+    });
+  };
+
+  console.warn = (...args: any[]) => {
+    originalConsole.warn(...args);
+    vscode.postMessage({
+      type: 'console',
+      level: 'warn',
+      message: args.map(a => typeof a === 'object' ? JSON.stringify(a) : String(a)).join(' ')
+    });
+  };
+
+  console.error = (...args: any[]) => {
+    originalConsole.error(...args);
+    vscode.postMessage({
+      type: 'console',
+      level: 'error',
+      message: args.map(a => typeof a === 'object' ? JSON.stringify(a) : String(a)).join(' ')
+    });
+  };
+}
+
+// Setup console logging
+setupConsoleLogging();
+
+/**
  * Compartments for dynamic reconfiguration
  */
 const modeCompartment = new Compartment();
@@ -95,8 +170,10 @@ function initializeEditor(): void {
   // Get initial mode from body data attribute
   const bodyElement = document.body;
   const initialMode = (bodyElement.dataset.mode as EditorMode) || 'livePreview';
-  const initialTheme = bodyElement.dataset.theme || 'dark';
+  const initialTheme = bodyElement.dataset.theme || 'light'; // Default to light, not dark!
 
+  console.log('[Webview] [THEME] Body data-theme attribute:', bodyElement.dataset.theme);
+  console.log('[Webview] [THEME] Resolved initial theme:', initialTheme);
   console.log('[Webview] Initial mode:', initialMode, 'theme:', initialTheme);
   currentMode = initialMode;
 
@@ -112,7 +189,7 @@ function initializeEditor(): void {
         themeCompartment.of(getThemeExtensions(initialTheme)),
         EditorView.updateListener.of((update) => {
           if (update.docChanged && !isUpdatingFromVSCode) {
-            // Notify VS Code of changes
+            // Send edit message to mark document as dirty
             const content = update.state.doc.toString();
             sendMessage({
               type: 'edit',
@@ -125,6 +202,10 @@ function initializeEditor(): void {
     });
 
     console.log('[Webview] EditorState created, creating EditorView...');
+
+    // Clear loading message before creating editor
+    console.log('[Webview] Clearing loading message...');
+    container.innerHTML = '';
 
     // Create editor view
     editorView = new EditorView({
@@ -266,18 +347,26 @@ function updateContent(content: string): void {
  * Update theme
  */
 function updateTheme(theme: string): void {
+  console.log('[Webview] [THEME] updateTheme called with theme:', theme);
+
   if (!editorView) {
+    console.warn('[Webview] [THEME] Cannot update theme: editor not initialized');
     return;
   }
 
   try {
+    console.log('[Webview] [THEME] Setting body data-theme attribute to:', theme);
+    document.body.dataset.theme = theme;
+
+    console.log('[Webview] [THEME] Reconfiguring editor theme extensions');
     editorView.dispatch({
       effects: themeCompartment.reconfigure(getThemeExtensions(theme))
     });
 
-    document.body.dataset.theme = theme;
+    console.log('[Webview] [THEME] Theme successfully updated to:', theme);
     log(`Theme updated to ${theme}`);
   } catch (error) {
+    console.error('[Webview] [THEME] Failed to update theme:', error);
     logError('Failed to update theme', error);
   }
 }
@@ -287,6 +376,7 @@ function updateTheme(theme: string): void {
  */
 function handleMessage(event: MessageEvent): void {
   const message = event.data;
+  console.log('[Webview] Received message:', message.type, message);
 
   switch (message.type) {
     case 'update':
@@ -294,15 +384,35 @@ function handleMessage(event: MessageEvent): void {
       break;
 
     case 'switchMode':
+      console.log('[Webview] Switching to mode:', message.mode);
       switchMode(message.mode);
       break;
 
     case 'themeChange':
+      console.log('[Webview] [THEME] Received themeChange message with theme:', message.theme);
       updateTheme(message.theme);
+      break;
+
+    case 'fileInfo':
+      updateFileInfo(message.fileName, message.relativePath);
       break;
 
     default:
       log(`Unknown message type: ${message.type}`);
+  }
+}
+
+/**
+ * Update file info header
+ */
+function updateFileInfo(fileName: string, relativePath: string): void {
+  const titleEl = document.getElementById('filename-title');
+  const pathEl = document.getElementById('filename-path');
+
+  if (titleEl && pathEl) {
+    titleEl.textContent = fileName;
+    titleEl.title = relativePath; // Tooltip
+    pathEl.textContent = relativePath;
   }
 }
 

@@ -1,0 +1,379 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Fabriqa Editor - Web Simulator (Development Only)</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      display: flex;
+      height: 100vh;
+      overflow: hidden;
+    }
+
+    #controls {
+      width: 300px;
+      background: #1e1e1e;
+      color: #cccccc;
+      padding: 20px;
+      overflow-y: auto;
+      border-right: 1px solid #454545;
+    }
+
+    #controls h2 {
+      color: #ffffff;
+      margin-bottom: 20px;
+      font-size: 16px;
+    }
+
+    #controls label {
+      display: block;
+      margin-top: 15px;
+      margin-bottom: 5px;
+      font-size: 13px;
+    }
+
+    #controls select,
+    #controls input[type="number"] {
+      width: 100%;
+      padding: 6px;
+      background: #3c3c3c;
+      border: 1px solid #454545;
+      color: #cccccc;
+      border-radius: 3px;
+    }
+
+    #controls button {
+      width: 100%;
+      margin-top: 10px;
+      padding: 8px;
+      background: #0e639c;
+      color: white;
+      border: none;
+      border-radius: 3px;
+      cursor: pointer;
+      font-size: 13px;
+    }
+
+    #controls button:hover {
+      background: #1177bb;
+    }
+
+    #console-log {
+      margin-top: 20px;
+      padding: 10px;
+      background: #252526;
+      border: 1px solid #454545;
+      border-radius: 3px;
+      max-height: 300px;
+      overflow-y: auto;
+      font-family: 'Courier New', monospace;
+      font-size: 11px;
+    }
+
+    .log-entry {
+      padding: 2px 0;
+      border-bottom: 1px solid #333;
+    }
+
+    .log-entry.error {
+      color: #f48771;
+    }
+
+    .log-entry.warn {
+      color: #cca700;
+    }
+
+    .log-entry.info {
+      color: #75beff;
+    }
+
+    #editor-container {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      background: var(--vscode-editor-background, #1e1e1e);
+    }
+
+    #editor {
+      flex: 1;
+      overflow: auto;
+    }
+
+
+    /* VS Code CSS variables - Default to LIGHT theme */
+    :root {
+      --vscode-editor-foreground: #000000;
+      --vscode-editor-background: #ffffff;
+      --vscode-editorCursor-foreground: #000000;
+      --vscode-editor-selectionBackground: #add6ff;
+      --vscode-textLink-foreground: #006ab1;
+      --vscode-symbolIcon-classForeground: #267f99;
+      --vscode-textCodeBlock-background: #f5f5f5;
+      --vscode-foreground: #3b3b3b;
+      --vscode-errorForeground: #a1260d;
+      --vscode-inputValidation-errorBackground: #f2dede;
+      --vscode-inputValidation-errorBorder: #be1100;
+      --vscode-editor-font-family: 'Monaco', 'Menlo', 'Consolas', monospace;
+      --vscode-panel-border: #e0e0e0;
+    }
+
+    body[data-theme="dark"] {
+      --vscode-editor-foreground: #d4d4d4;
+      --vscode-editor-background: #1e1e1e;
+      --vscode-editorCursor-foreground: #aeafad;
+      --vscode-editor-selectionBackground: #264f78;
+      --vscode-textLink-foreground: #3794ff;
+      --vscode-symbolIcon-classForeground: #4ec9b0;
+      --vscode-textCodeBlock-background: #0a0a0a;
+      --vscode-foreground: #cccccc;
+      --vscode-errorForeground: #f48771;
+      --vscode-inputValidation-errorBackground: #5a1d1d;
+      --vscode-inputValidation-errorBorder: #be1100;
+      --vscode-panel-border: #454545;
+    }
+
+    .loading {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      height: 100%;
+      color: var(--vscode-foreground);
+    }
+  </style>
+</head>
+<body data-theme="light" data-mode="livePreview">
+  <div id="controls">
+    <h2>🧪 Development Simulator</h2>
+
+    <label for="theme-select">Theme:</label>
+    <select id="theme-select">
+      <option value="light" selected>Light</option>
+      <option value="dark">Dark</option>
+    </select>
+
+    <label for="mode-select">Editor Mode:</label>
+    <select id="mode-select">
+      <option value="livePreview" selected>Live Preview</option>
+      <option value="source">Source</option>
+      <option value="reading">Reading</option>
+    </select>
+
+    <label for="font-size">Font Size:</label>
+    <input type="number" id="font-size" value="14" min="8" max="32">
+
+    <button onclick="loadSampleContent()">Load Sample Markdown</button>
+    <button onclick="clearEditor()">Clear Editor</button>
+    <button onclick="clearConsole()">Clear Console</button>
+
+    <h2 style="margin-top: 30px;">📋 Console</h2>
+    <div id="console-log"></div>
+  </div>
+
+  <div id="editor-container">
+    <div id="editor">
+      <div class="loading">Loading editor...</div>
+    </div>
+  </div>
+
+  <script>
+    // Simulate VS Code API
+    let messageListeners = [];
+    let currentContent = '';
+
+    window.acquireVsCodeApi = function() {
+      return {
+        postMessage: function(message) {
+          logConsole('info', `[Webview → Extension] ${message.type}`, message);
+
+          // Simulate extension responses
+          setTimeout(() => {
+            if (message.type === 'ready') {
+              // Send initial content
+              simulateExtensionMessage({
+                type: 'update',
+                content: currentContent,
+                uri: 'simulator://test.md'
+              });
+            } else if (message.type === 'edit') {
+              currentContent = message.content;
+              logConsole('log', 'Content updated', { length: message.content.length });
+            }
+          }, 10);
+        },
+        setState: function(state) {
+          logConsole('log', 'setState', state);
+        },
+        getState: function() {
+          return null;
+        }
+      };
+    };
+
+    function simulateExtensionMessage(message) {
+      logConsole('info', `[Extension → Webview] ${message.type}`, message);
+      window.dispatchEvent(new MessageEvent('message', { data: message }));
+    }
+
+    function logConsole(level, message, data) {
+      const consoleLog = document.getElementById('console-log');
+      const entry = document.createElement('div');
+      entry.className = `log-entry ${level}`;
+      const timestamp = new Date().toLocaleTimeString();
+      entry.textContent = `[${timestamp}] ${message}`;
+      if (data && typeof data === 'object') {
+        entry.textContent += ` ${JSON.stringify(data).substring(0, 100)}`;
+      }
+      consoleLog.appendChild(entry);
+      consoleLog.scrollTop = consoleLog.scrollHeight;
+    }
+
+    function clearConsole() {
+      document.getElementById('console-log').innerHTML = '';
+    }
+
+    function switchMode(mode) {
+      // Update dropdown to match
+      document.getElementById('mode-select').value = mode;
+      document.body.setAttribute('data-mode', mode);
+
+      simulateExtensionMessage({
+        type: 'switchMode',
+        mode: mode
+      });
+    }
+
+    function loadSampleContent() {
+      currentContent = `# Welcome to Fabriqa Markdown Editor
+
+## Features
+
+This is a **Live Preview** mode test. You can:
+
+- Type markdown and see it rendered *as you type*
+- Use **bold** and *italic* text
+- Create [links](https://example.com)
+- Add \`inline code\`
+
+### Code Blocks
+
+\`\`\`javascript
+function hello() {
+  console.log("Hello, World!");
+}
+\`\`\`
+
+## Lists
+
+1. First item
+2. Second item
+3. Third item
+
+## Blockquotes
+
+> This is a quote
+>
+> With multiple lines
+
+---
+
+Try switching between modes using the toolbar buttons!
+`;
+
+      simulateExtensionMessage({
+        type: 'update',
+        content: currentContent,
+        uri: 'simulator://test.md'
+      });
+    }
+
+    function clearEditor() {
+      currentContent = '';
+      simulateExtensionMessage({
+        type: 'update',
+        content: '',
+        uri: 'simulator://test.md'
+      });
+    }
+
+    // Theme switcher
+    document.getElementById('theme-select').addEventListener('change', (e) => {
+      const theme = e.target.value;
+      document.body.setAttribute('data-theme', theme);
+
+      // Update both data-theme and class for compatibility
+      document.body.className = '';
+      if (theme === 'light') {
+        document.body.classList.add('light');
+      }
+
+      simulateExtensionMessage({
+        type: 'themeChange',
+        theme: theme
+      });
+    });
+
+    // Mode switcher
+    document.getElementById('mode-select').addEventListener('change', (e) => {
+      const mode = e.target.value;
+      switchMode(mode);
+    });
+
+    // Font size
+    document.getElementById('font-size').addEventListener('change', (e) => {
+      document.body.style.fontSize = e.target.value + 'px';
+    });
+
+    // Intercept console methods
+    const originalConsole = {
+      log: console.log,
+      info: console.info,
+      warn: console.warn,
+      error: console.error
+    };
+
+    console.log = function(...args) {
+      originalConsole.log(...args);
+      logConsole('log', args.join(' '));
+    };
+
+    console.info = function(...args) {
+      originalConsole.info(...args);
+      logConsole('info', args.join(' '));
+    };
+
+    console.warn = function(...args) {
+      originalConsole.warn(...args);
+      logConsole('warn', args.join(' '));
+    };
+
+    console.error = function(...args) {
+      originalConsole.error(...args);
+      logConsole('error', args.join(' '));
+    };
+
+    // Load the webview script
+    const script = document.createElement('script');
+    script.src = '../dist/webview.js';
+    script.onerror = function() {
+      logConsole('error', 'Failed to load webview.js - make sure to run "npm run build" first');
+      document.getElementById('editor').innerHTML = `
+        <div style="padding: 20px; color: red;">
+          <h2>⚠️ Failed to load webview.js</h2>
+          <p>Run <code>npm run build</code> to build the extension first.</p>
+        </div>
+      `;
+    };
+    document.body.appendChild(script);
+
+    logConsole('info', 'Simulator loaded. Click "Load Sample Markdown" to get started.');
+  </script>
+</body>
+</html>

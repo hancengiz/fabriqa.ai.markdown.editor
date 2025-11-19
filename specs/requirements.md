@@ -92,9 +92,12 @@ Built with **CodeMirror 6** for authentic Obsidian-like experience with three di
 
 #### Mode Switching
 Users can toggle between modes via:
-- **Toolbar buttons** in editor
-- **Keyboard shortcuts** (configurable)
-- **Command palette** commands
+- **Toolbar buttons** in editor (top-right settings icon)
+- **Keyboard shortcuts**:
+  - `Cmd+Shift+P` (Mac) / `Ctrl+Shift+P` (Windows/Linux) - Switch to Live Preview
+  - `Cmd+Shift+S` (Mac) / `Ctrl+Shift+S` (Windows/Linux) - Switch to Source
+  - `Cmd+Shift+R` (Mac) / `Ctrl+Shift+R` (Windows/Linux) - Switch to Reading
+- **Command palette** commands (`Cmd/Ctrl+Shift+P` → search "Fabriqa")
 - **Settings** for default mode preference
 
 #### Editor Features

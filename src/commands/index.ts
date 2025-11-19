@@ -5,6 +5,7 @@ import { MarkdownTreeProvider } from '../providers/MarkdownTreeProvider';
 import { MarkdownEditorProvider, EditorMode } from '../providers/MarkdownEditorProvider';
 import { ConfigManager } from '../config/ConfigManager';
 import { Logger } from '../utils/Logger';
+import { WebviewLogger } from '../utils/WebviewLogger';
 
 /**
  * Register all commands for the extension
@@ -53,21 +54,39 @@ export function registerCommands(
   // Switch to Live Preview mode
   context.subscriptions.push(
     vscode.commands.registerCommand('fabriqa.switchToLivePreview', async () => {
-      await editorProvider.switchMode('livePreview');
+      try {
+        await editorProvider.switchMode('livePreview');
+        Logger.info('Switched to Live Preview mode');
+      } catch (error) {
+        Logger.error('Failed to switch to Live Preview mode', error);
+        vscode.window.showErrorMessage('Failed to switch mode');
+      }
     })
   );
 
   // Switch to Source mode
   context.subscriptions.push(
     vscode.commands.registerCommand('fabriqa.switchToSource', async () => {
-      await editorProvider.switchMode('source');
+      try {
+        await editorProvider.switchMode('source');
+        Logger.info('Switched to Source mode');
+      } catch (error) {
+        Logger.error('Failed to switch to Source mode', error);
+        vscode.window.showErrorMessage('Failed to switch mode');
+      }
     })
   );
 
   // Switch to Reading mode
   context.subscriptions.push(
     vscode.commands.registerCommand('fabriqa.switchToReading', async () => {
-      await editorProvider.switchMode('reading');
+      try {
+        await editorProvider.switchMode('reading');
+        Logger.info('Switched to Reading mode');
+      } catch (error) {
+        Logger.error('Failed to switch to Reading mode', error);
+        vscode.window.showErrorMessage('Failed to switch mode');
+      }
     })
   );
 
@@ -171,7 +190,7 @@ export function registerCommands(
 
         // Confirm deletion
         const confirm = await vscode.window.showWarningMessage(
-          `Are you sure you want to delete "${file.displayName}.md"?`,
+          `Are you sure you want to delete "${file.displayName}"?`,
           { modal: true },
           'Delete'
         );
@@ -187,7 +206,7 @@ export function registerCommands(
         treeProvider.refresh();
 
         Logger.info(`Deleted file: ${file.absolutePath}`);
-        vscode.window.showInformationMessage(`Deleted ${file.displayName}.md`);
+        vscode.window.showInformationMessage(`Deleted ${file.displayName}`);
       } catch (error) {
         Logger.error('Failed to delete file', error);
         vscode.window.showErrorMessage(`Failed to delete file: ${error}`);
@@ -205,11 +224,12 @@ export function registerCommands(
           return;
         }
 
-        // Prompt for new name
+        // Prompt for new name (strip .md for input, add it back for file operation)
+        const baseNameWithoutExt = path.basename(file.displayName, '.md');
         const newName = await vscode.window.showInputBox({
           prompt: 'Enter new file name (without .md extension)',
           placeHolder: 'my-document',
-          value: file.displayName,
+          value: baseNameWithoutExt,
           validateInput: (value) => {
             if (!value) {
               return 'File name cannot be empty';
@@ -221,7 +241,7 @@ export function registerCommands(
           }
         });
 
-        if (!newName || newName === file.displayName) {
+        if (!newName || newName === baseNameWithoutExt) {
           return;
         }
 
@@ -261,6 +281,117 @@ export function registerCommands(
   context.subscriptions.push(
     vscode.commands.registerCommand('fabriqa.expandSection', async () => {
       vscode.window.showInformationMessage('Expand section (not yet implemented)');
+    })
+  );
+
+  // Show webview console logs
+  context.subscriptions.push(
+    vscode.commands.registerCommand('fabriqa.showWebviewLogs', async () => {
+      await WebviewLogger.showLogFile();
+    })
+  );
+
+  // Show editor settings menu
+  context.subscriptions.push(
+    vscode.commands.registerCommand('fabriqa.showEditorSettings', async () => {
+      const config = vscode.workspace.getConfiguration('fabriqa');
+
+      // Get current values
+      const currentMode = editorProvider.getCurrentMode() || 'livePreview';
+      const currentTheme = config.get<string>('theme', 'light');
+
+      // Build menu items
+      const items = [
+        {
+          label: '$(eye) Switch to Live Preview',
+          description: currentMode === 'livePreview' ? '✓ Current' : '',
+          action: 'mode:livePreview'
+        },
+        {
+          label: '$(code) Switch to Source',
+          description: currentMode === 'source' ? '✓ Current' : '',
+          action: 'mode:source'
+        },
+        {
+          label: '$(book) Switch to Reading',
+          description: currentMode === 'reading' ? '✓ Current' : '',
+          action: 'mode:reading'
+        },
+        { label: '', kind: vscode.QuickPickItemKind.Separator },
+        {
+          label: '$(color-mode) Theme: Light',
+          description: currentTheme === 'light' ? '✓ Current' : '',
+          action: 'theme:light'
+        },
+        {
+          label: '$(color-mode) Theme: Dark',
+          description: currentTheme === 'dark' ? '✓ Current' : '',
+          action: 'theme:dark'
+        },
+        {
+          label: '$(color-mode) Theme: Follow VS Code',
+          description: currentTheme === 'vscode' ? '✓ Current' : '',
+          action: 'theme:vscode'
+        },
+        { label: '', kind: vscode.QuickPickItemKind.Separator },
+        {
+          label: '$(gear) Open Settings',
+          description: 'Configure all Fabriqa settings',
+          action: 'open:settings'
+        }
+      ];
+
+      const selected = await vscode.window.showQuickPick(items, {
+        placeHolder: 'Fabriqa Editor Settings'
+      });
+
+      if (!selected || !selected.action) {
+        return;
+      }
+
+      // Handle action
+      const [type, value] = selected.action.split(':');
+
+      switch (type) {
+        case 'mode':
+          await editorProvider.switchMode(value as EditorMode);
+          break;
+
+        case 'theme':
+          await config.update('theme', value, vscode.ConfigurationTarget.Global);
+          vscode.window.showInformationMessage(`Theme changed to: ${value}`);
+          break;
+
+        case 'open':
+          if (value === 'settings') {
+            await vscode.commands.executeCommand('workbench.action.openSettings', '@ext:fabriqa.fabriqa-markdown-editor');
+          }
+          break;
+      }
+    })
+  );
+
+
+  // Change theme
+  context.subscriptions.push(
+    vscode.commands.registerCommand('fabriqa.changeTheme', async () => {
+      const config = vscode.workspace.getConfiguration('fabriqa');
+      const currentTheme = config.get<string>('theme', 'light');
+
+      const themes = [
+        { label: 'Light', value: 'light', description: currentTheme === 'light' ? '✓ Current' : '' },
+        { label: 'Dark', value: 'dark', description: currentTheme === 'dark' ? '✓ Current' : '' },
+        { label: 'Follow VS Code', value: 'vscode', description: currentTheme === 'vscode' ? '✓ Current' : '' }
+      ];
+
+      const selected = await vscode.window.showQuickPick(themes, {
+        placeHolder: 'Select editor theme'
+      });
+
+      if (selected) {
+        await config.update('theme', selected.value, vscode.ConfigurationTarget.Global);
+        vscode.window.showInformationMessage(`Theme changed to: ${selected.label}`);
+      }
     })
   );
 }

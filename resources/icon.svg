@@ -1,0 +1,10 @@
+<svg width="128" height="128" viewBox="0 0 128 128" xmlns="http://www.w3.org/2000/svg">
+  <!-- Orange background circle -->
+  <circle cx="64" cy="64" r="60" fill="#ff6b35"/>
+
+  <!-- White "F" letter -->
+  <text x="64" y="92" font-family="Arial, sans-serif" font-size="80" font-weight="bold" fill="white" text-anchor="middle">F</text>
+
+  <!-- Small accent dot in lighter orange -->
+  <circle cx="102" cy="26" r="8" fill="#ffab91"/>
+</svg>

@@ -169,7 +169,7 @@ export class ConfigManager {
       : path.join(this.workspaceRoot, relativePath);
 
     const exists = fs.existsSync(absolutePath);
-    const displayName = path.basename(relativePath, '.md');
+    const displayName = path.basename(relativePath); // Keep .md extension
 
     return {
       relativePath,

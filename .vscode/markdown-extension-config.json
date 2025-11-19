@@ -8,38 +8,7 @@
         "specs/requirements.md",
         "specs/design.md",
         "specs/tasks.md"
-      ],
-      "description": "Build complex features with structured planning"
-    },
-    {
-      "id": "research",
-      "title": "RESEARCH",
-      "collapsed": false,
-      "files": [
-        "specs/research/markdown_editor_research.md"
-      ],
-      "description": "Research and technical exploration"
-    },
-    {
-      "id": "agent-hooks",
-      "title": "AGENT HOOKS",
-      "collapsed": false,
-      "files": [],
-      "description": "Automate repetitive tasks with smart triggers"
-    },
-    {
-      "id": "agent-steering",
-      "title": "AGENT STEERING",
-      "collapsed": false,
-      "files": [],
-      "description": "Guide agent behavior and responses"
-    },
-    {
-      "id": "mcp-servers",
-      "title": "MCP SERVERS",
-      "collapsed": false,
-      "files": [],
-      "description": "Connect external tools and data sources"
+      ]
     }
   ]
 }

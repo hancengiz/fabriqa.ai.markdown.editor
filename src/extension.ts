@@ -4,16 +4,23 @@ import { MarkdownEditorProvider } from './providers/MarkdownEditorProvider';
 import { ConfigManager } from './config/ConfigManager';
 import { registerCommands } from './commands';
 import { Logger } from './utils/Logger';
+import { WebviewLogger } from './utils/WebviewLogger';
 
 let treeProvider: MarkdownTreeProvider | undefined;
 let editorProvider: MarkdownEditorProvider | undefined;
 
 export function activate(context: vscode.ExtensionContext): void {
+  console.log("[Extension] ========== ACTIVATION STARTED ==========");
   Logger.info('Fabriqa Markdown Editor activating...');
+
+  // Initialize webview logger (only active in debug mode)
+  WebviewLogger.initialize(context);
 
   try {
     // Initialize configuration manager
+    console.log("[Extension] Creating ConfigManager...");
     const configManager = new ConfigManager();
+    console.log("[Extension] ConfigManager created");
 
     // Create tree provider for sidebar
     treeProvider = new MarkdownTreeProvider(configManager);
@@ -42,6 +49,7 @@ export function activate(context: vscode.ExtensionContext): void {
     // Watch for config file changes
     setupFileWatchers(context, treeProvider, configManager);
 
+    console.log("[Extension] ========== ACTIVATION COMPLETE ==========");
     Logger.info('Fabriqa Markdown Editor activated successfully');
   } catch (error) {
     Logger.error('Failed to activate Fabriqa Markdown Editor', error);
