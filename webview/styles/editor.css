@@ -1,0 +1,7 @@
+/**
+ * CodeMirror Editor Styles
+ * Additional styles for the markdown editor
+ *
+ * NOTE: Selection styling is handled in webview/main.ts via EditorView.theme()
+ * Do NOT add selection CSS here as it will conflict with CodeMirror's theme system
+ */

@@ -36,9 +36,17 @@ class LinkWidget extends WidgetType {
 }
 
 /**
- * Live Preview Mode Plugin
- * Hides markdown syntax except in the markdown structure where the cursor is positioned
- * Works at the structural level (like Obsidian) - not line-by-line
+ * Live Preview Mode Plugin (Obsidian-style)
+ *
+ * Hides markdown syntax except in the specific markdown element where the cursor is positioned.
+ * Works at the inline-element level, not line-by-line.
+ *
+ * Example: In "word **bold1** text **bold2** end"
+ * - Clicking inside **bold1** shows: word **bold1** text bold2 end
+ * - Clicking inside **bold2** shows: word bold1 text **bold2** end
+ * - Clicking outside both shows: word bold1 text bold2 end
+ *
+ * This provides granular control where only the element being edited shows raw markdown.
  */
 export const livePreviewPlugin = ViewPlugin.fromClass(
   class {
@@ -59,16 +67,21 @@ export const livePreviewPlugin = ViewPlugin.fromClass(
       const cursorPos = view.state.selection.main.head;
 
       // Find the active markdown structure containing the cursor
+      // This could be a specific inline element like one bold section: **text**
       const activeStructure = this.findActiveStructure(view, cursorPos);
 
       // Iterate through entire syntax tree
       syntaxTree(view.state).iterate({
         enter: (node) => {
           // Skip decorating nodes that are part of the active structure
+          // This includes the structure itself and all its children (e.g., the ** marks)
           if (activeStructure && node.from >= activeStructure.from && node.to <= activeStructure.to) {
-            return; // Skip this node but continue iteration
+            // Return false to skip this node and its children entirely
+            // This means syntax will remain visible for the active element
+            return false;
           }
 
+          // For all other nodes, apply decorations (hide syntax)
           this.processNode(node, view, decorations);
         }
       });
@@ -77,8 +90,11 @@ export const livePreviewPlugin = ViewPlugin.fromClass(
     }
 
     /**
-     * Find the smallest markdown structure that contains the cursor
-     * This determines which block should remain in "source mode"
+     * Find the smallest markdown structure that contains the cursor.
+     * This determines which specific element should remain in "source mode".
+     *
+     * For example, if the cursor is inside one **bold** section on a line with multiple
+     * bold sections, this returns only that specific StrongEmphasis node, not the entire line.
      */
     findActiveStructure(view: EditorView, cursorPos: number): SyntaxNode | null {
       let activeStructure: SyntaxNode | null = null;

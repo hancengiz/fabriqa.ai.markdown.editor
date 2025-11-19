@@ -203,6 +203,11 @@ export class MarkdownEditorProvider implements vscode.CustomTextEditorProvider {
       vscode.Uri.file(path.join(this.context.extensionPath, 'dist', 'webview.js'))
     );
 
+    // Get CSS file URI
+    const cssUri = webview.asWebviewUri(
+      vscode.Uri.file(path.join(this.context.extensionPath, 'webview', 'styles', 'editor.css'))
+    );
+
     // Get CSP source
     const cspSource = webview.cspSource;
 
@@ -221,7 +226,8 @@ export class MarkdownEditorProvider implements vscode.CustomTextEditorProvider {
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta http-equiv="Content-Security-Policy" content="default-src 'none'; style-src ${cspSource} 'unsafe-inline'; script-src ${cspSource};">
-  <title>Fabriqa Markdown Editor</title>
+  <title>fabriqa Markdown Editor</title>
+  <link rel="stylesheet" href="${cssUri}">
   <style>
     * {
       margin: 0;
@@ -281,9 +287,7 @@ export class MarkdownEditorProvider implements vscode.CustomTextEditorProvider {
       padding: 0 4px;
     }
 
-    .cm-selectionBackground {
-      background-color: var(--vscode-editor-selectionBackground) !important;
-    }
+    /* Selection is handled by EditorView.theme in webview/main.ts - do not override here */
 
     .cm-cursor {
       border-left-color: var(--vscode-editorCursor-foreground);

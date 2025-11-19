@@ -263,3 +263,62 @@ export function toggleBlockquote(view: EditorView): boolean {
 
   return true;
 }
+
+/**
+ * Toggle checkbox/task list (Cmd+Alt+T / Ctrl+Alt+T)
+ * Supports GitHub-flavored markdown task list syntax: - [ ] or - [x]
+ */
+export function toggleCheckbox(view: EditorView): boolean {
+  const selection = view.state.selection.main;
+  const line = view.state.doc.lineAt(selection.from);
+  const lineText = line.text;
+
+  // Check if line has a checkbox (checked or unchecked)
+  const uncheckedMatch = lineText.match(/^(\s*)[-*+]\s\[\s\]\s/);
+  const checkedMatch = lineText.match(/^(\s*)[-*+]\s\[x\]\s/i);
+
+  if (uncheckedMatch) {
+    // Toggle unchecked to checked
+    view.dispatch({
+      changes: {
+        from: line.from,
+        to: line.from + uncheckedMatch[0].length,
+        insert: uncheckedMatch[1] + '- [x] '
+      }
+    });
+  } else if (checkedMatch) {
+    // Remove checkbox (toggle checked to no checkbox)
+    view.dispatch({
+      changes: {
+        from: line.from,
+        to: line.from + checkedMatch[0].length,
+        insert: checkedMatch[1] + '- '
+      }
+    });
+  } else {
+    // No checkbox - add unchecked checkbox
+    const bulletMatch = lineText.match(/^(\s*)[-*+]\s/);
+    if (bulletMatch) {
+      // Already a bullet point - convert to unchecked checkbox
+      view.dispatch({
+        changes: {
+          from: line.from,
+          to: line.from + bulletMatch[0].length,
+          insert: bulletMatch[1] + '- [ ] '
+        }
+      });
+    } else {
+      // Not a list item - add checkbox list item
+      const indent = lineText.match(/^(\s*)/)?.[1] || '';
+      view.dispatch({
+        changes: {
+          from: line.from,
+          to: line.from + indent.length,
+          insert: indent + '- [ ] '
+        }
+      });
+    }
+  }
+
+  return true;
+}

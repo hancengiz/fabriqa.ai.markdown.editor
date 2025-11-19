@@ -3,6 +3,7 @@ import { EditorState, Compartment } from '@codemirror/state';
 import { markdown } from '@codemirror/lang-markdown';
 import { syntaxHighlighting, defaultHighlightStyle } from '@codemirror/language';
 import { keymap, highlightSpecialChars, drawSelection, highlightActiveLine, dropCursor, rectangularSelection, crosshairCursor, lineNumbers, highlightActiveLineGutter } from '@codemirror/view';
+import { StyleModule } from 'style-mod';
 import { defaultKeymap, history, historyKeymap } from '@codemirror/commands';
 import { searchKeymap, highlightSelectionMatches } from '@codemirror/search';
 import { autocompletion, completionKeymap, closeBrackets, closeBracketsKeymap } from '@codemirror/autocomplete';
@@ -20,7 +21,8 @@ import {
   toggleHeading,
   toggleBulletList,
   toggleNumberedList,
-  toggleBlockquote
+  toggleBlockquote,
+  toggleCheckbox
 } from './editors/markdownCommands';
 
 // Basic setup extensions (equivalent to basicSetup)
@@ -30,7 +32,7 @@ const basicExtensions = [
   highlightSpecialChars(),
   history(),
   foldGutter(),
-  drawSelection(),
+  // drawSelection(), // REMOVED - trying native selection only
   dropCursor(),
   EditorState.allowMultipleSelections.of(true),
   indentOnInput(),
@@ -64,17 +66,20 @@ const basicExtensions = [
         return true;
       }
     },
-    // Markdown formatting shortcuts (Obsidian-style)
-    { key: 'Mod-b', run: toggleBold },
-    { key: 'Mod-i', run: toggleItalic },
-    { key: 'Mod-e', run: toggleInlineCode },
-    { key: 'Mod-k', run: insertLink },
-    { key: 'Mod-Shift-e', run: insertCodeBlock },
-    { key: 'Mod-Shift-x', run: toggleStrikethrough },
-    { key: 'Mod-Shift-h', run: toggleHeading },
-    { key: 'Mod-Shift-8', run: toggleBulletList },
-    { key: 'Mod-Shift-7', run: toggleNumberedList },
-    { key: 'Mod-Shift-.', run: toggleBlockquote },
+    // Markdown formatting shortcuts (using Cmd+Alt to match Obsidian-style while avoiding VS Code conflicts)
+    // Cmd+B conflicts with VS Code sidebar, Cmd+Shift+B conflicts with Build Task
+    // So we use Cmd+Alt (Cmd+Option on Mac) which is standard for secondary shortcuts
+    { key: 'Mod-Alt-b', run: toggleBold },
+    { key: 'Mod-Alt-i', run: toggleItalic },
+    { key: 'Mod-Alt-c', run: toggleInlineCode },
+    { key: 'Mod-Alt-k', run: insertLink },
+    { key: 'Mod-Alt-e', run: insertCodeBlock },
+    { key: 'Mod-Alt-x', run: toggleStrikethrough },
+    { key: 'Mod-Alt-h', run: toggleHeading },
+    { key: 'Mod-Alt-8', run: toggleBulletList },
+    { key: 'Mod-Alt-7', run: toggleNumberedList },
+    { key: 'Mod-Alt-q', run: toggleBlockquote },
+    { key: 'Mod-Alt-t', run: toggleCheckbox },
     // Default keymaps
     ...closeBracketsKeymap,
     ...defaultKeymap,
@@ -214,6 +219,11 @@ function initializeEditor(): void {
               content
             });
           }
+          // Debug: Log selection changes
+          if (update.selectionSet) {
+            const sel = update.state.selection.main;
+            console.log('[Webview] Selection changed:', { from: sel.from, to: sel.to, empty: sel.empty });
+          }
         }),
         EditorView.lineWrapping,
       ]
@@ -266,19 +276,46 @@ function getModeExtensions(mode: EditorMode): any[] {
 function getThemeExtensions(): any[] {
   return [
     syntaxHighlighting(defaultHighlightStyle),
+    // Use baseTheme for native browser selection only
+    EditorView.baseTheme({
+      '.cm-content ::selection': {
+        backgroundColor: '#add6ff !important'
+      },
+      '.cm-content::selection': {
+        backgroundColor: '#add6ff !important'
+      },
+      '.cm-line ::selection': {
+        backgroundColor: '#add6ff !important'
+      }
+    }),
     EditorView.theme({
       '&': {
-        color: 'var(--vscode-editor-foreground)',
-        backgroundColor: 'var(--vscode-editor-background)'
+        color: '#000000',
+        backgroundColor: '#ffffff'
       },
       '.cm-content': {
-        caretColor: 'var(--vscode-editorCursor-foreground)'
+        caretColor: '#000000'
       },
       '.cm-cursor, .cm-dropCursor': {
-        borderLeftColor: 'var(--vscode-editorCursor-foreground)'
+        borderLeftColor: '#000000',
+        borderLeftWidth: '2px'
       },
-      '&.cm-focused .cm-selectionBackground, .cm-selectionBackground, .cm-content ::selection': {
-        backgroundColor: 'var(--vscode-editor-selectionBackground)'
+      // Active line
+      '.cm-activeLine': {
+        backgroundColor: '#f5f5f5'
+      },
+      // Line numbers
+      '.cm-gutters': {
+        backgroundColor: '#ffffff',
+        color: '#999999',
+        border: 'none'
+      },
+      '.cm-activeLineGutter': {
+        backgroundColor: '#f5f5f5'
+      },
+      // Line wrapping
+      '.cm-line': {
+        padding: '0 4px'
       }
     })
   ];
