@@ -243,9 +243,7 @@ export const readingModePlugin = ViewPlugin.fromClass(
 .reading-mode-content h1 {
   margin: .67em 0;
   font-weight: var(--base-text-weight-semibold, 600);
-  padding-bottom: .3em;
   font-size: 2em;
-  border-bottom: 1px solid var(--borderColor-muted);
 }
 
 .reading-mode-content mark {
@@ -448,9 +446,7 @@ export const readingModePlugin = ViewPlugin.fromClass(
 
 .reading-mode-content h2 {
   font-weight: var(--base-text-weight-semibold, 600);
-  padding-bottom: .3em;
   font-size: 1.5em;
-  border-bottom: 1px solid var(--borderColor-muted);
 }
 
 .reading-mode-content h3 {
