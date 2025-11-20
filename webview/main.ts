@@ -11,6 +11,7 @@ import { foldGutter, indentOnInput, syntaxHighlighting as syntaxHighlightingFace
 import { lintKeymap } from '@codemirror/lint';
 import { livePreviewPlugin } from './editors/livePreviewMode';
 import { readingModePlugin } from './editors/readingMode';
+import { markdownHidingStyles } from './lib/markdown-live-preview';
 import {
   toggleBold,
   toggleItalic,
@@ -208,6 +209,7 @@ function initializeEditor(): void {
       extensions: [
         ...basicExtensions,
         markdown(),
+        markdownHidingStyles, // CSS for hiding markdown syntax
         modeCompartment.of(getModeExtensions(initialMode)),
         getThemeExtensions(),
         EditorView.updateListener.of((update) => {

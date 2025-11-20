@@ -3,6 +3,11 @@ import { syntaxTree } from '@codemirror/language';
 import { Range } from '@codemirror/state';
 import { SyntaxNode } from '@lezer/common';
 
+// Decoration for hiding markdown syntax markers
+// Uses Decoration.mark() with CSS class instead of Decoration.replace()
+// This approach is more reliable and doesn't break cursor placement
+const hiddenDecoration = Decoration.mark({ class: 'cm-md-hidden' });
+
 /**
  * Widget for clickable links in Live Preview
  * Supports Cmd/Ctrl+Click to open markdown files
@@ -194,15 +199,10 @@ export const livePreviewPlugin = ViewPlugin.fromClass(
             return false;
           }
 
-          // Check if we've already decorated this range
-          const rangeKey = `${node.from}-${node.to}`;
-          if (decoratedRanges.has(rangeKey)) {
-            return false;
-          }
-
           // For all other nodes, apply decorations (hide syntax)
-          this.processNode(node, view, decorations);
-          decoratedRanges.add(rangeKey);
+          // Note: We don't check decoratedRanges at the node level anymore,
+          // only inside processNode() at the decoration level to prevent duplicates
+          this.processNode(node, view, decorations, decoratedRanges);
         }
       });
 
@@ -330,70 +330,47 @@ export const livePreviewPlugin = ViewPlugin.fromClass(
       return activeStructure;
     }
 
-    processNode(node: SyntaxNode, view: EditorView, decorations: Range<Decoration>[]): void {
+    processNode(node: SyntaxNode, view: EditorView, decorations: Range<Decoration>[], decoratedRanges: Set<string>): void {
       const { from, to, type } = node;
       const nodeText = view.state.doc.sliceString(from, to);
+
+      // Helper function to add decoration only if range not already decorated
+      const addDecoration = (decoration: Decoration, from: number, to: number) => {
+        const key = `${from}-${to}`;
+        if (!decoratedRanges.has(key)) {
+          decorations.push(decoration.range(from, to));
+          decoratedRanges.add(key);
+        }
+      };
 
       switch (type.name) {
         case 'HeaderMark':
           // Hide header marks (# ## ### etc.)
           if (nodeText.match(/^#+\s?$/)) {
-            decorations.push(
-              Decoration.replace({ inclusive: false }).range(from, to)
-            );
-          }
-          break;
-
-        case 'ATXHeading1':
-        case 'ATXHeading2':
-        case 'ATXHeading3':
-        case 'ATXHeading4':
-        case 'ATXHeading5':
-        case 'ATXHeading6':
-          // Hide header marks at the start
-          if (nodeText.startsWith('#')) {
-            const hashMatch = nodeText.match(/^(#+\s?)/);
-            if (hashMatch) {
-              decorations.push(
-                Decoration.replace({ inclusive: false }).range(from, from + hashMatch[1].length)
-              );
-            }
+            addDecoration(hiddenDecoration, from, to);
           }
           break;
 
         case 'EmphasisMark':
           // Hide emphasis marks (*, **, _, __) - matches any combination
           if (nodeText.match(/^[*_]+$/)) {
-            decorations.push(
-              Decoration.replace({}).range(from, to)
-            );
-          }
-          break;
-
-        case 'StrongEmphasisMark':
-          // Hide strong emphasis marks (** or __) - fallback if EmphasisMark doesn't catch it
-          if (nodeText.match(/^[*_]{2,}$/)) {
-            decorations.push(
-              Decoration.replace({ inclusive: false }).range(from, to)
-            );
+            addDecoration(hiddenDecoration, from, to);
           }
           break;
 
         case 'Link':
           // Handle link syntax [text](url)
-          this.handleLink(node, view, decorations);
+          this.handleLink(node, view, decorations, decoratedRanges);
           break;
 
         case 'CodeMark':
           // Hide inline code marks (`)
-          decorations.push(
-            Decoration.replace({ inclusive: false }).range(from, to)
-          );
+          addDecoration(hiddenDecoration, from, to);
           break;
 
         case 'InlineCode':
           // Style inline code
-          decorations.push(
+          addDecoration(
             Decoration.mark({
               class: 'cm-inline-code-preview',
               attributes: {
@@ -404,25 +381,29 @@ export const livePreviewPlugin = ViewPlugin.fromClass(
                   font-family: var(--vscode-editor-font-family);
                 `
               }
-            }).range(from, to)
+            }),
+            from,
+            to
           );
           break;
 
         case 'CodeInfo':
           // Slightly dim code block language info
-          decorations.push(
+          addDecoration(
             Decoration.mark({
               class: 'cm-code-info',
               attributes: {
                 style: 'opacity: 0.5; font-size: 0.9em;'
               }
-            }).range(from, to)
+            }),
+            from,
+            to
           );
           break;
 
         case 'QuoteMark':
           // Style blockquote marks
-          decorations.push(
+          addDecoration(
             Decoration.mark({
               class: 'cm-quote-mark',
               attributes: {
@@ -431,13 +412,15 @@ export const livePreviewPlugin = ViewPlugin.fromClass(
                   opacity: 0.6;
                 `
               }
-            }).range(from, to)
+            }),
+            from,
+            to
           );
           break;
 
         case 'ListMark':
           // Style list marks
-          decorations.push(
+          addDecoration(
             Decoration.mark({
               class: 'cm-list-mark',
               attributes: {
@@ -446,30 +429,38 @@ export const livePreviewPlugin = ViewPlugin.fromClass(
                   font-weight: bold;
                 `
               }
-            }).range(from, to)
+            }),
+            from,
+            to
           );
           break;
 
         case 'Strikethrough':
           // Apply strikethrough styling
-          decorations.push(
+          addDecoration(
             Decoration.mark({
               class: 'cm-strikethrough',
               attributes: {
                 style: 'text-decoration: line-through;'
               }
-            }).range(from, to)
+            }),
+            from,
+            to
           );
           break;
 
         case 'TaskMarker':
           // Replace task list checkboxes with clickable widgets
           const isChecked = nodeText.toLowerCase().includes('x');
-          decorations.push(
-            Decoration.replace({
-              widget: new CheckboxWidget(isChecked, view, from)
-            }).range(from, to)
-          );
+          const rangeKey = `${from}-${to}`;
+          if (!decoratedRanges.has(rangeKey)) {
+            decorations.push(
+              Decoration.replace({
+                widget: new CheckboxWidget(isChecked, view, from)
+              }).range(from, to)
+            );
+            decoratedRanges.add(rangeKey);
+          }
           break;
 
         default:
@@ -477,7 +468,7 @@ export const livePreviewPlugin = ViewPlugin.fromClass(
       }
     }
 
-    handleLink(linkNode: SyntaxNode, view: EditorView, decorations: Range<Decoration>[]): void {
+    handleLink(linkNode: SyntaxNode, view: EditorView, decorations: Range<Decoration>[], decoratedRanges: Set<string>): void {
       let linkText = '';
       let linkUrl = '';
       let linkStart = linkNode.from;
@@ -500,11 +491,15 @@ export const livePreviewPlugin = ViewPlugin.fromClass(
 
       // Replace entire link with widget [text](url) -> clickable text
       if (linkText && linkUrl) {
-        decorations.push(
-          Decoration.replace({
-            widget: new LinkWidget(linkUrl, linkText)
-          }).range(linkStart, linkEnd)
-        );
+        const rangeKey = `${linkStart}-${linkEnd}`;
+        if (!decoratedRanges.has(rangeKey)) {
+          decorations.push(
+            Decoration.replace({
+              widget: new LinkWidget(linkUrl, linkText)
+            }).range(linkStart, linkEnd)
+          );
+          decoratedRanges.add(rangeKey);
+        }
       }
     }
   },
