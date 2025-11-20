@@ -419,34 +419,25 @@ export function registerCommands(
         const sidebarConfigPath = path.join(vscodeDir, 'fabriqa-markdown-editor-config.json');
         const configExists = fs.existsSync(sidebarConfigPath);
 
-        // If file doesn't exist, create it with default content
+        // If file doesn't exist, create it with content from current config
         if (!configExists) {
+          // Get current config to use as template
+          const currentConfig = configManager.getConfig();
           const defaultContent = {
-            sections: [
-              {
-                id: "docs",
-                title: "DOCUMENTATION",
-                collapsed: false,
-                filePatterns: [
-                  "docs/**/*.md"
-                ],
-                description: "Documentation files"
-              },
-              {
-                id: "specs",
-                title: "SPECS",
-                collapsed: false,
-                filePatterns: [
-                  "specs/**/*.md"
-                ],
-                description: "Specification files"
-              }
-            ]
+            sections: currentConfig.sections.map(section => ({
+              id: section.id,
+              title: section.title,
+              collapsed: section.collapsed,
+              ...(section.files.length > 0 && {
+                files: section.files.map(file => file.relativePath)
+              }),
+              ...(section.description && { description: section.description })
+            }))
           };
 
           fs.writeFileSync(sidebarConfigPath, JSON.stringify(defaultContent, null, 2), 'utf-8');
           Logger.info(`Created sidebar config: ${sidebarConfigPath}`);
-          vscode.window.showInformationMessage('Created .vscode/fabriqa-markdown-editor-config.json with default settings');
+          vscode.window.showInformationMessage('Created .vscode/fabriqa-markdown-editor-config.json with current settings');
         }
 
         // Open the file

@@ -68,35 +68,7 @@ function setupFileWatchers(
   treeProvider: MarkdownTreeProvider,
   configManager: ConfigManager
 ): void {
-  // Watch for changes to .fabriqa.sidebar.yml (primary config file)
-  const yamlConfigWatcher = vscode.workspace.createFileSystemWatcher(
-    new vscode.RelativePattern(
-      vscode.workspace.workspaceFolders![0],
-      '.fabriqa.sidebar.yml'
-    )
-  );
-
-  yamlConfigWatcher.onDidChange(() => {
-    Logger.info('.fabriqa.sidebar.yml changed, refreshing tree view');
-    configManager.reload();
-    treeProvider.refresh();
-  });
-
-  yamlConfigWatcher.onDidCreate(() => {
-    Logger.info('.fabriqa.sidebar.yml created, refreshing tree view');
-    configManager.reload();
-    treeProvider.refresh();
-  });
-
-  yamlConfigWatcher.onDidDelete(() => {
-    Logger.info('.fabriqa.sidebar.yml deleted, refreshing tree view');
-    configManager.reload();
-    treeProvider.refresh();
-  });
-
-  context.subscriptions.push(yamlConfigWatcher);
-
-  // Also watch for old JSON config (backward compatibility)
+  // Watch for changes to JSON config file
   const configPath = configManager.getConfigPath();
   const jsonConfigWatcher = vscode.workspace.createFileSystemWatcher(
     new vscode.RelativePattern(

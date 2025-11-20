@@ -2,7 +2,7 @@
   "name": "fabriqa-markdown-editor",
   "displayName": "fabriqa.ai Markdown Editor",
   "description": "Obsidian-like markdown editor with Live Preview, Source, and Reading modes",
-  "version": "0.1.0",
+  "version": "0.1.3",
   "publisher": "fabriqaai",
   "icon": "resources/icon.png",
   "engines": {

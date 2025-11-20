@@ -31,7 +31,7 @@ A VS Code extension that provides an Obsidian-inspired markdown editing experien
 ### 2.1 Sidebar View (Tree View)
 
 #### Visual Design Reference
-Based on the provided screenshot (KIRO-style sidebar), the extension provides:
+The extension provides:
 
 ```
 📁 Extension Name
