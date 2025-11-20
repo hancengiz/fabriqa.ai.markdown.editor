@@ -322,54 +322,65 @@ function getThemeExtensions(): any[] {
       '.cm-line': {
         padding: '0 4px'
       },
-      // Search panel styling (VS Code-like)
+      // Search panel styling (VS Code-like, lightweight)
       '.cm-panel.cm-search': {
         backgroundColor: 'var(--vscode-editorWidget-background)',
-        border: '1px solid var(--vscode-editorWidget-border)',
-        padding: '8px',
-        borderRadius: '3px',
-        boxShadow: '0 2px 8px var(--vscode-widget-shadow)'
+        border: 'none',
+        borderBottom: '1px solid var(--vscode-editorWidget-border)',
+        padding: '4px 6px',
+        fontSize: '13px',
+        fontWeight: '400',
+        boxShadow: 'none'
       },
       '.cm-searchMatch': {
         backgroundColor: 'var(--vscode-editor-findMatchBackground)',
-        border: '1px solid var(--vscode-editor-findMatchBorder)',
-        borderRadius: '2px'
+        outline: '1px solid var(--vscode-editor-findMatchBorder)',
+        borderRadius: '1px'
       },
       '.cm-searchMatch-selected': {
         backgroundColor: 'var(--vscode-editor-findMatchHighlightBackground)',
-        border: '1px solid var(--vscode-editor-findMatchHighlightBorder)'
+        outline: '1px solid var(--vscode-editor-findMatchHighlightBorder)'
       },
       '.cm-panel input[type=text]': {
         backgroundColor: 'var(--vscode-input-background)',
         color: 'var(--vscode-input-foreground)',
         border: '1px solid var(--vscode-input-border)',
-        padding: '4px 8px',
+        padding: '3px 6px',
+        fontSize: '13px',
+        fontWeight: '400',
         borderRadius: '2px',
-        outline: 'none'
+        outline: 'none',
+        minWidth: '150px'
       },
       '.cm-panel input[type=text]:focus': {
-        border: '1px solid var(--vscode-focusBorder)',
-        outline: '1px solid var(--vscode-focusBorder)',
-        outlineOffset: '-1px'
+        borderColor: 'var(--vscode-focusBorder)',
+        outline: 'none'
       },
       '.cm-panel button': {
-        backgroundColor: 'var(--vscode-button-background)',
-        color: 'var(--vscode-button-foreground)',
-        border: 'none',
-        padding: '4px 12px',
+        backgroundColor: 'transparent',
+        color: 'var(--vscode-foreground)',
+        border: '1px solid transparent',
+        padding: '3px 8px',
         borderRadius: '2px',
         cursor: 'pointer',
         fontSize: '12px',
+        fontWeight: '400',
         fontFamily: 'var(--vscode-font-family)'
       },
       '.cm-panel button:hover': {
-        backgroundColor: 'var(--vscode-button-hoverBackground)'
+        backgroundColor: 'var(--vscode-toolbar-hoverBackground)',
+        borderColor: 'var(--vscode-toolbar-hoverOutline)'
       },
       '.cm-panel label': {
         color: 'var(--vscode-foreground)',
         fontSize: '12px',
+        fontWeight: '400',
         fontFamily: 'var(--vscode-font-family)',
-        marginRight: '8px'
+        marginRight: '6px'
+      },
+      '.cm-panel input[type=checkbox]': {
+        cursor: 'pointer',
+        marginRight: '4px'
       }
     })
   ];
