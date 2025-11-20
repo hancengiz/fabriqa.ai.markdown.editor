@@ -319,6 +319,38 @@ function getThemeExtensions(): any[] {
       '.cm-line': {
         padding: '0 4px'
       },
+      // Heading sizes for Live Preview and Source modes
+      '.cm-header-1, .cm-heading-1': {
+        fontSize: '2em',
+        fontWeight: '600',
+        lineHeight: '1.25'
+      },
+      '.cm-header-2, .cm-heading-2': {
+        fontSize: '1.5em',
+        fontWeight: '600',
+        lineHeight: '1.25'
+      },
+      '.cm-header-3, .cm-heading-3': {
+        fontSize: '1.25em',
+        fontWeight: '600',
+        lineHeight: '1.25'
+      },
+      '.cm-header-4, .cm-heading-4': {
+        fontSize: '1em',
+        fontWeight: '600',
+        lineHeight: '1.25'
+      },
+      '.cm-header-5, .cm-heading-5': {
+        fontSize: '0.875em',
+        fontWeight: '600',
+        lineHeight: '1.25'
+      },
+      '.cm-header-6, .cm-heading-6': {
+        fontSize: '0.85em',
+        fontWeight: '600',
+        lineHeight: '1.25',
+        color: '#656d76'
+      },
       // Search match highlighting (for VS Code native find)
       '.cm-searchMatch': {
         backgroundColor: '#ffff00',
