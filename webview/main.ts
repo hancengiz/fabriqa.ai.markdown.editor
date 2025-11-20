@@ -538,9 +538,19 @@ function handleFind(query: string, options?: { caseSensitive?: boolean; wholeWor
       effects: setSearchQuery.of(searchQuery)
     });
 
-    // Find first match manually without opening search panel
-    const cursor = searchQuery.getCursor(editorView.state.doc);
-    const firstMatch = cursor.next();
+    // Start searching from current cursor position
+    const state = editorView.state;
+    const currentPos = state.selection.main.head;
+
+    // Find first match after current position
+    let cursor = searchQuery.getCursor(state.doc, currentPos);
+    let firstMatch = cursor.next();
+
+    // If no match after cursor, wrap around to beginning
+    if (firstMatch.done) {
+      cursor = searchQuery.getCursor(state.doc, 0);
+      firstMatch = cursor.next();
+    }
 
     if (firstMatch.done === false) {
       // Jump to first match and select it
