@@ -56,7 +56,7 @@ export class MermaidDiagramWidget extends WidgetType {
     // Initialize mermaid if not already done
     initMermaid();
 
-    // Create main container - display as block to take full width
+    // Create main container - take 75% width, leave 25% margin on right
     const container = document.createElement('div');
     container.className = 'mermaid-diagram-widget-container';
     container.style.cssText = `
@@ -68,7 +68,7 @@ export class MermaidDiagramWidget extends WidgetType {
       background: var(--vscode-editor-background);
       margin: 8px 0;
       min-height: 100px;
-      width: 100%;
+      width: 75%;
       box-sizing: border-box;
     `;
 
@@ -142,7 +142,33 @@ export class MermaidDiagramWidget extends WidgetType {
       display: flex;
       align-items: center;
       justify-content: center;
+      cursor: pointer;
     `;
+
+    // Handle double-click to enter edit mode
+    diagramContainer.addEventListener('dblclick', (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+
+      // Move cursor to the code block position to trigger showing raw code
+      this.view.dispatch({
+        selection: { anchor: this.from + 1 },
+        scrollIntoView: true
+      });
+
+      // Focus the editor
+      this.view.focus();
+    });
+
+    // Prevent single clicks from moving cursor
+    // Double-click handler above will still trigger for double-clicks
+    diagramContainer.addEventListener('mousedown', (e) => {
+      // Only prevent single clicks, allow double-clicks through
+      if (e.detail === 1) {
+        e.preventDefault();
+        e.stopPropagation();
+      }
+    });
 
     container.appendChild(diagramContainer);
 
@@ -170,7 +196,7 @@ export class MermaidDiagramWidget extends WidgetType {
       // Replace loading with SVG
       diagramContainer.innerHTML = svg;
 
-      // Style the SVG
+      // Style the SVG - keep original size but constrain to container width
       const svgElement = diagramContainer.querySelector('svg');
       if (svgElement) {
         svgElement.style.maxWidth = '100%';
@@ -198,7 +224,9 @@ export class MermaidDiagramWidget extends WidgetType {
   }
 
   ignoreEvent(event: Event) {
-    // Let click events through to allow button interaction
+    // Tell CodeMirror to ignore all click/mousedown events on this widget
+    // This prevents cursor movement when clicking on the diagram
+    // The "View Code" button has its own handler that explicitly moves the cursor
     return event.type === 'mousedown' || event.type === 'click';
   }
 }

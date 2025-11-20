@@ -26,80 +26,32 @@ export class MarkdownEditorProvider implements vscode.CustomTextEditorProvider {
   private currentActivePanel: vscode.WebviewPanel | null = null;
   private pendingReveal: { uri: string; line: number; character: number } | null = null;
   private selectionChangeDisposable: vscode.Disposable | null = null;
+  // Store pending selection from search results (captures during brief TextEditor phase)
+  private pendingSelection: vscode.Selection | null = null;
 
   constructor(
     private readonly context: vscode.ExtensionContext,
     private readonly configManager: ConfigManager
   ) {
-    // Listen for text editor selection changes to capture search result positions
-    this.selectionChangeDisposable = vscode.window.onDidChangeTextEditorSelection(e => {
-      this.handleSelectionChange(e);
-    });
+    // Note: VS Code's Custom Editor API does not provide a way to receive selection/position
+    // information when opening files from search results. This is a known limitation.
+    // Users can use Cmd+F within the editor for search functionality.
   }
 
   /**
    * Resolve a custom editor for a given document
    */
-  /**
-   * Handle text editor selection changes to capture search result positions
-   */
-  private handleSelectionChange(event: vscode.TextEditorSelectionChangeEvent): void {
-    const uri = event.textEditor.document.uri;
-    const selection = event.selections[0];
-
-    Logger.info(`Selection change event: ${uri.fsPath}, kind: ${event.kind}, empty: ${selection.isEmpty}`);
-
-    // Check if there's an active webview for this URI
-    if (this.activeWebviews.has(uri.toString()) && !selection.isEmpty) {
-      const line = selection.start.line + 1; // Convert to 1-indexed
-      const character = selection.start.character;
-
-      Logger.info(`Selection detected for custom editor ${uri.fsPath}: line ${line}, char ${character}`);
-
-      // Set pending reveal
-      this.setPendingReveal(uri, line, character);
-
-      // Send reveal message if webview is already ready
-      const webviewData = this.activeWebviews.get(uri.toString());
-      if (webviewData) {
-        Logger.info(`Sending revealPosition message to webview`);
-        webviewData.panel.webview.postMessage({
-          type: 'revealPosition',
-          line: line,
-          character: character
-        });
-      }
-    }
-  }
 
   public async resolveCustomTextEditor(
     document: vscode.TextDocument,
     webviewPanel: vscode.WebviewPanel,
     _token: vscode.CancellationToken
   ): Promise<void> {
-    Logger.info(`Opening custom editor for ${document.uri.fsPath}`);
+    console.log(`[fabriqa resolveCustomTextEditor] Opening ${document.uri.fsPath.split('/').pop()}`);
+    Logger.info(`[resolveCustomTextEditor] Opening custom editor for ${document.uri.fsPath}`);
 
-    // Check if there's already a text editor with a selection for this document
-    // This happens when opening from search results - VS Code briefly opens it as a text editor first
-    const updateSelection = () => {
-      const editor = vscode.window.visibleTextEditors.find(
-        e => e.document.uri.toString() === document.uri.toString()
-      );
-
-      if (editor && !editor.selection.isEmpty) {
-        const sel = editor.selection;
-        const line = sel.start.line + 1; // Convert to 1-indexed
-        const character = sel.start.character;
-
-        Logger.info(`Found existing selection for ${document.uri.fsPath}: line ${line}, char ${character}`);
-
-        // Set pending reveal for when webview becomes ready
-        this.setPendingReveal(document.uri, line, character);
-      }
-    };
-
-    // Check immediately
-    updateSelection();
+    // Note: Custom editors don't receive selection information from search results
+    // This is a limitation of VS Code's Custom Editor API
 
     // Configure webview
     webviewPanel.webview.options = {
@@ -203,11 +155,17 @@ export class MarkdownEditorProvider implements vscode.CustomTextEditorProvider {
 
       case 'ready':
         // Webview is ready, send initial state
+        console.log(`[fabriqa ready] Webview ready for ${document.uri.fsPath.split('/').pop()}`);
         Logger.info('Webview ready');
 
         // Check if there's a pending reveal (e.g., from search results)
         if (this.pendingReveal && this.pendingReveal.uri === document.uri.toString()) {
           const { line, character } = this.pendingReveal;
+          console.log(`[fabriqa ready] ✓ Sending revealPosition: line ${line}, char ${character}`);
+
+          // DEBUG: Show alert
+          vscode.window.showInformationMessage(`🎯 Sending reveal to webview: line ${line}, char ${character}`);
+
           // Send reveal message to webview
           webview.postMessage({
             type: 'revealPosition',
@@ -217,6 +175,8 @@ export class MarkdownEditorProvider implements vscode.CustomTextEditorProvider {
           Logger.info(`Revealed position: line ${line}, column ${character}`);
           // Clear pending reveal
           this.pendingReveal = null;
+        } else {
+          console.log(`[fabriqa ready] ✗ No pending reveal`);
         }
         break;
 
