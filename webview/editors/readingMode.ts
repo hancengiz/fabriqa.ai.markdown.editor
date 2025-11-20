@@ -1442,13 +1442,19 @@ export const readingModePlugin = ViewPlugin.fromClass(
         if (!preElement) continue;
 
         try {
+          // Parse size from HTML comment (same as Live Preview mode)
+          // Format: %% {"editorSize": {"width": 600, "height": 400}} %%
+          const sizeMatch = mermaidCode.match(/%% \{"editorSize": \{"width": (\d+), "height": (\d+)\}\} %%/);
+          const customWidth = sizeMatch ? `${sizeMatch[1]}px` : 'fit-content';
+          const customHeight = sizeMatch ? `${sizeMatch[2]}px` : 'auto';
+
           // Generate unique ID for this diagram
           const diagramId = `mermaid-diagram-${Date.now()}-${i}`;
 
           // Render the diagram
           const { svg } = await mermaid.render(diagramId, mermaidCode);
 
-          // Create a container for the diagram - fit content with max 75% width
+          // Create a container for the diagram with custom or default size
           const container = document.createElement('div');
           container.className = 'mermaid-diagram-container';
           container.innerHTML = svg;
@@ -1460,8 +1466,9 @@ export const readingModePlugin = ViewPlugin.fromClass(
             background: #ffffff;
             margin: 16px 0 16px 0;
             overflow: auto;
-            width: fit-content;
-            max-width: 75%;
+            width: ${customWidth};
+            height: ${customHeight};
+            max-width: 100%;
             display: block;
           `;
 
