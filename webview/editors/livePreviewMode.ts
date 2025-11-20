@@ -2,6 +2,7 @@ import { ViewPlugin, DecorationSet, Decoration, EditorView, ViewUpdate, WidgetTy
 import { syntaxTree } from '@codemirror/language';
 import { Range } from '@codemirror/state';
 import { SyntaxNode } from '@lezer/common';
+import { MermaidDiagramWidget } from '../lib/mermaid-widget';
 
 // Decoration for hiding markdown syntax markers
 // Uses Decoration.mark() with CSS class instead of Decoration.replace()
@@ -463,8 +464,70 @@ export const livePreviewPlugin = ViewPlugin.fromClass(
           }
           break;
 
+        case 'FencedCode':
+          // Handle Mermaid diagrams in code blocks
+          this.handleMermaidDiagram(node, view, decorations, decoratedRanges);
+          break;
+
         default:
           break;
+      }
+    }
+
+    /**
+     * Handle Mermaid diagram code blocks
+     * Shows diagram widget and hides code block content
+     */
+    handleMermaidDiagram(fencedCodeNode: SyntaxNode, view: EditorView, decorations: Range<Decoration>[], decoratedRanges: Set<string>): void {
+      let isMermaid = false;
+      let mermaidCode = '';
+      let codeStart = fencedCodeNode.from;
+      let codeEnd = fencedCodeNode.to;
+
+      // Parse the FencedCode structure to find CodeInfo and CodeText
+      fencedCodeNode.node.cursor().iterate((node) => {
+        if (node.type.name === 'CodeInfo') {
+          const lang = view.state.doc.sliceString(node.from, node.to).trim();
+          isMermaid = lang === 'mermaid';
+        } else if (node.type.name === 'CodeText') {
+          mermaidCode = view.state.doc.sliceString(node.from, node.to);
+        }
+      });
+
+      // If this is a mermaid code block, add widget and hide content
+      if (isMermaid && mermaidCode) {
+        const widgetKey = `mermaid-widget-${codeStart}`;
+        const hideKey = `mermaid-hide-${codeStart}`;
+
+        if (!decoratedRanges.has(widgetKey)) {
+          // Add the widget at the start of the code block (inline widget)
+          decorations.push(
+            Decoration.widget({
+              widget: new MermaidDiagramWidget(mermaidCode, view, codeStart, codeEnd),
+              side: -1  // Place before the code block
+            }).range(codeStart)
+          );
+          decoratedRanges.add(widgetKey);
+        }
+
+        if (!decoratedRanges.has(hideKey)) {
+          // Hide the entire code block content with a mark decoration
+          decorations.push(
+            Decoration.mark({
+              class: 'cm-mermaid-hidden',
+              attributes: {
+                style: `
+                  display: none;
+                  height: 0;
+                  overflow: hidden;
+                  position: absolute;
+                  visibility: hidden;
+                `
+              }
+            }).range(codeStart, codeEnd)
+          );
+          decoratedRanges.add(hideKey);
+        }
       }
     }
 

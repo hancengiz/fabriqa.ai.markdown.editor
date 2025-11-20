@@ -157,10 +157,10 @@ This simplification improved code maintainability while keeping all planned func
 - ✅ Added debug logging toggle setting
 - ✅ Implemented checkbox widgets in Live Preview
 - ✅ Added link widgets with Cmd+Click support
+- ✅ **Completed Mermaid diagram support** (Reading Mode + Live Preview with interactive toggle)
 
 ### Current Focus
 
-- 🚧 Mermaid diagram support (interactive Live Preview)
 - 🚧 Live Preview spec documentation
 - 🚧 Enhanced file operations
 - 🚧 Documentation improvements

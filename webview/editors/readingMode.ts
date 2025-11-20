@@ -1,6 +1,7 @@
 import { ViewPlugin, EditorView } from '@codemirror/view';
 import { marked } from 'marked';
 import DOMPurify from 'dompurify';
+import mermaid from 'mermaid';
 
 /**
  * Reading Mode Plugin
@@ -10,10 +11,32 @@ export const readingModePlugin = ViewPlugin.fromClass(
   class {
     private htmlContainer: HTMLDivElement | null = null;
     private view: EditorView | null = null;
+    private mermaidInitialized = false;
 
     constructor(view: EditorView) {
       this.view = view;
+      this.initMermaid();
       this.renderHTML(view);
+    }
+
+    /**
+     * Initialize Mermaid with theme-aware configuration
+     */
+    initMermaid() {
+      if (this.mermaidInitialized) return;
+
+      // Detect VS Code theme (light vs dark)
+      const isDark = document.body.classList.contains('vscode-dark') ||
+                     document.body.classList.contains('vscode-high-contrast');
+
+      mermaid.initialize({
+        startOnLoad: false,
+        theme: isDark ? 'dark' : 'default',
+        securityLevel: 'loose',
+        fontFamily: 'var(--vscode-editor-font-family)',
+      });
+
+      this.mermaidInitialized = true;
     }
 
     update(update: any) {
@@ -1264,6 +1287,9 @@ export const readingModePlugin = ViewPlugin.fromClass(
 
         // Make links clickable with Cmd/Ctrl+Click
         this.setupLinkHandlers(view);
+
+        // Render Mermaid diagrams
+        this.renderMermaidDiagrams();
       } catch (error) {
         console.error('Failed to render markdown:', error);
         if (this.htmlContainer) {
@@ -1357,6 +1383,79 @@ export const readingModePlugin = ViewPlugin.fromClass(
           }
         });
       });
+    }
+
+    /**
+     * Render Mermaid diagrams in reading mode
+     * Finds code blocks with language-mermaid class and replaces them with rendered SVG
+     */
+    async renderMermaidDiagrams() {
+      if (!this.htmlContainer) return;
+
+      const mermaidBlocks = this.htmlContainer.querySelectorAll('pre code.language-mermaid');
+
+      for (let i = 0; i < mermaidBlocks.length; i++) {
+        const codeBlock = mermaidBlocks[i] as HTMLElement;
+        const mermaidCode = codeBlock.textContent || '';
+        const preElement = codeBlock.parentElement;
+
+        if (!preElement) continue;
+
+        try {
+          // Generate unique ID for this diagram
+          const diagramId = `mermaid-diagram-${Date.now()}-${i}`;
+
+          // Render the diagram
+          const { svg } = await mermaid.render(diagramId, mermaidCode);
+
+          // Create a container for the diagram
+          const container = document.createElement('div');
+          container.className = 'mermaid-diagram-container';
+          container.innerHTML = svg;
+          container.style.cssText = `
+            position: relative;
+            border: 1px solid var(--vscode-panel-border);
+            border-radius: 4px;
+            padding: 16px;
+            background: var(--vscode-editor-background);
+            margin: 16px 0;
+            overflow: auto;
+          `;
+
+          // Replace the pre element with the rendered diagram
+          preElement.replaceWith(container);
+        } catch (error) {
+          // Show error in place of diagram
+          console.error('Failed to render mermaid diagram:', error);
+
+          const errorContainer = document.createElement('div');
+          errorContainer.className = 'mermaid-error-container';
+          errorContainer.style.cssText = `
+            position: relative;
+            border: 2px solid var(--vscode-errorForeground);
+            border-radius: 4px;
+            padding: 16px;
+            background: var(--vscode-inputValidation-errorBackground);
+            margin: 16px 0;
+          `;
+          errorContainer.innerHTML = `
+            <div style="color: var(--vscode-errorForeground); font-weight: bold; margin-bottom: 8px;">
+              ⚠️ Mermaid Diagram Error
+            </div>
+            <div style="color: var(--vscode-errorForeground); font-size: 12px; font-family: monospace;">
+              ${(error as Error).message || 'Invalid Mermaid syntax'}
+            </div>
+            <details style="margin-top: 12px;">
+              <summary style="cursor: pointer; color: var(--vscode-descriptionForeground);">
+                View Code
+              </summary>
+              <pre style="margin-top: 8px; padding: 8px; background: var(--vscode-textCodeBlock-background); border-radius: 3px; overflow: auto;"><code>${mermaidCode}</code></pre>
+            </details>
+          `;
+
+          preElement.replaceWith(errorContainer);
+        }
+      }
     }
   }
 );
