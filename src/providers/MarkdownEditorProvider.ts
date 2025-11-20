@@ -84,6 +84,9 @@ export class MarkdownEditorProvider implements vscode.CustomTextEditorProvider {
       this.context.subscriptions
     );
 
+    // Setup find controller for VS Code native find integration
+    this.setupFindController(document, webviewPanel);
+
     // Update webview when document changes (but not when the change came from the webview)
     const changeDocumentSubscription = vscode.workspace.onDidChangeTextDocument(e => {
       if (e.document.uri.toString() === document.uri.toString()) {
@@ -387,6 +390,66 @@ export class MarkdownEditorProvider implements vscode.CustomTextEditorProvider {
   <script src="${scriptUri}"></script>
 </body>
 </html>`;
+  }
+
+  /**
+   * Setup find controller for VS Code native find integration
+   */
+  private setupFindController(document: vscode.TextDocument, webviewPanel: vscode.WebviewPanel): void {
+    // Register find commands for this specific webview instance
+    const findCommand = vscode.commands.registerCommand('fabriqa.find', async () => {
+      // Only execute if this is the active panel
+      if (this.currentActivePanel !== webviewPanel) {
+        return;
+      }
+
+      const query = await vscode.window.showInputBox({
+        prompt: 'Find in document',
+        placeHolder: 'Enter search text',
+        value: '' // Start with empty value
+      });
+
+      if (query !== undefined && query !== '') {
+        webviewPanel.webview.postMessage({
+          type: 'find',
+          query: query,
+          options: {
+            caseSensitive: false,
+            wholeWord: false,
+            regexp: false
+          }
+        });
+      }
+    });
+
+    const findNextCommand = vscode.commands.registerCommand('fabriqa.findNext', () => {
+      if (this.currentActivePanel !== webviewPanel) {
+        return;
+      }
+      webviewPanel.webview.postMessage({ type: 'findNext' });
+    });
+
+    const findPreviousCommand = vscode.commands.registerCommand('fabriqa.findPrevious', () => {
+      if (this.currentActivePanel !== webviewPanel) {
+        return;
+      }
+      webviewPanel.webview.postMessage({ type: 'findPrevious' });
+    });
+
+    const clearFindCommand = vscode.commands.registerCommand('fabriqa.clearFind', () => {
+      if (this.currentActivePanel !== webviewPanel) {
+        return;
+      }
+      webviewPanel.webview.postMessage({ type: 'clearFind' });
+    });
+
+    // Cleanup commands when webview is disposed
+    webviewPanel.onDidDispose(() => {
+      findCommand.dispose();
+      findNextCommand.dispose();
+      findPreviousCommand.dispose();
+      clearFindCommand.dispose();
+    });
   }
 
   /**

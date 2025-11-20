@@ -5,7 +5,7 @@ import { syntaxHighlighting, defaultHighlightStyle } from '@codemirror/language'
 import { keymap, highlightSpecialChars, drawSelection, highlightActiveLine, dropCursor, rectangularSelection, crosshairCursor, lineNumbers, highlightActiveLineGutter } from '@codemirror/view';
 import { StyleModule } from 'style-mod';
 import { defaultKeymap, history, historyKeymap } from '@codemirror/commands';
-import { search, searchKeymap, highlightSelectionMatches } from '@codemirror/search';
+import { SearchQuery, setSearchQuery, findNext, findPrevious, highlightSelectionMatches } from '@codemirror/search';
 import { autocompletion, completionKeymap, closeBrackets, closeBracketsKeymap } from '@codemirror/autocomplete';
 import { foldGutter, indentOnInput, syntaxHighlighting as syntaxHighlightingFacet, bracketMatching } from '@codemirror/language';
 import { lintKeymap } from '@codemirror/lint';
@@ -44,9 +44,6 @@ const basicExtensions = [
   crosshairCursor(),
   highlightActiveLine(),
   highlightSelectionMatches(),
-  search({
-    top: true,  // Place search panel at the top
-  }),
   keymap.of([
     // Mode switching shortcuts (editor rendering modes)
     {
@@ -87,7 +84,6 @@ const basicExtensions = [
     // Default keymaps
     ...closeBracketsKeymap,
     ...defaultKeymap,
-    ...searchKeymap,
     ...historyKeymap,
     ...completionKeymap,
     ...lintKeymap
@@ -322,16 +318,7 @@ function getThemeExtensions(): any[] {
       '.cm-line': {
         padding: '0 4px'
       },
-      // Search panel styling (VS Code-like, lightweight)
-      '.cm-panel.cm-search': {
-        backgroundColor: 'var(--vscode-editorWidget-background)',
-        border: 'none',
-        borderBottom: '1px solid var(--vscode-editorWidget-border)',
-        padding: '4px 6px',
-        fontSize: '13px',
-        fontWeight: '400',
-        boxShadow: 'none'
-      },
+      // Search match highlighting (for VS Code native find)
       '.cm-searchMatch': {
         backgroundColor: 'var(--vscode-editor-findMatchBackground)',
         outline: '1px solid var(--vscode-editor-findMatchBorder)',
@@ -340,54 +327,6 @@ function getThemeExtensions(): any[] {
       '.cm-searchMatch-selected': {
         backgroundColor: 'var(--vscode-editor-findMatchHighlightBackground)',
         outline: '1px solid var(--vscode-editor-findMatchHighlightBorder)'
-      },
-      '.cm-panel input[type=text]': {
-        backgroundColor: 'var(--vscode-input-background)',
-        color: 'var(--vscode-input-foreground)',
-        border: '1px solid var(--vscode-input-border)',
-        padding: '3px 6px',
-        fontSize: '13px',
-        fontWeight: '400',
-        borderRadius: '2px',
-        outline: 'none',
-        minWidth: '150px'
-      },
-      '.cm-panel input[type=text]:focus': {
-        borderColor: 'var(--vscode-focusBorder)',
-        outline: 'none'
-      },
-      '.cm-panel button': {
-        backgroundColor: 'transparent',
-        color: 'var(--vscode-foreground)',
-        border: '1px solid transparent',
-        padding: '3px 8px',
-        borderRadius: '2px',
-        cursor: 'pointer',
-        fontSize: '12px',
-        fontWeight: '400',
-        fontFamily: 'var(--vscode-font-family)'
-      },
-      '.cm-panel button:hover': {
-        backgroundColor: 'var(--vscode-toolbar-hoverBackground)',
-        borderColor: 'var(--vscode-toolbar-hoverOutline)'
-      },
-      '.cm-panel label': {
-        color: 'var(--vscode-input-foreground)',
-        fontSize: '12px',
-        fontWeight: '400',
-        fontFamily: 'var(--vscode-font-family)',
-        marginRight: '6px',
-        display: 'inline-flex',
-        alignItems: 'center',
-        gap: '4px'
-      },
-      '.cm-panel input[type=checkbox]': {
-        cursor: 'pointer',
-        accentColor: 'var(--vscode-checkbox-background)'
-      },
-      '.cm-panel.cm-search [name=close]': {
-        color: 'var(--vscode-foreground)',
-        opacity: '0.8'
       }
     })
   ];
@@ -486,6 +425,30 @@ function handleMessage(event: MessageEvent): void {
       switchMode(message.mode);
       break;
 
+    case 'find':
+      handleFind(message.query, message.options);
+      break;
+
+    case 'findNext':
+      handleFindNext();
+      break;
+
+    case 'findPrevious':
+      handleFindPrevious();
+      break;
+
+    case 'replace':
+      handleReplace(message.replacement);
+      break;
+
+    case 'replaceAll':
+      handleReplaceAll(message.replacement);
+      break;
+
+    case 'clearFind':
+      handleClearFind();
+      break;
+
     default:
       log(`Unknown message type: ${message.type}`);
   }
@@ -548,6 +511,109 @@ if (document.readyState === 'loading') {
 } else {
   console.log('[Webview] DOM already loaded, initializing immediately');
   initializeEditor();
+}
+
+/**
+ * Find handlers for VS Code native find integration
+ */
+function handleFind(query: string, options?: { caseSensitive?: boolean; wholeWord?: boolean; regexp?: boolean }): void {
+  if (!editorView) return;
+
+  try {
+    const searchQuery = new SearchQuery({
+      search: query,
+      caseSensitive: options?.caseSensitive,
+      wholeWord: options?.wholeWord,
+      regexp: options?.regexp
+    });
+
+    editorView.dispatch({
+      effects: setSearchQuery.of(searchQuery)
+    });
+
+    log(`Find: "${query}" (${JSON.stringify(options)})`);
+  } catch (error) {
+    logError('Find failed', error);
+  }
+}
+
+function handleFindNext(): void {
+  if (!editorView) return;
+
+  try {
+    findNext(editorView);
+    log('Find next');
+  } catch (error) {
+    logError('Find next failed', error);
+  }
+}
+
+function handleFindPrevious(): void {
+  if (!editorView) return;
+
+  try {
+    findPrevious(editorView);
+    log('Find previous');
+  } catch (error) {
+    logError('Find previous failed', error);
+  }
+}
+
+function handleReplace(replacement: string): void {
+  if (!editorView || currentMode === 'reading') {
+    log('Replace not available in reading mode');
+    return;
+  }
+
+  try {
+    // CodeMirror doesn't have a built-in replace single function
+    // We need to implement it manually
+    const state = editorView.state;
+    const selection = state.selection.main;
+
+    if (!selection.empty) {
+      editorView.dispatch({
+        changes: { from: selection.from, to: selection.to, insert: replacement },
+        selection: { anchor: selection.from + replacement.length }
+      });
+
+      // Move to next match
+      findNext(editorView);
+      log(`Replaced with: "${replacement}"`);
+    }
+  } catch (error) {
+    logError('Replace failed', error);
+  }
+}
+
+function handleReplaceAll(replacement: string): void {
+  if (!editorView || currentMode === 'reading') {
+    log('Replace all not available in reading mode');
+    return;
+  }
+
+  try {
+    // Get current search query from state
+    const state = editorView.state;
+    // This is a simplified version - a full implementation would need to
+    // iterate through all matches and replace them
+    log(`Replace all with: "${replacement}" - Not fully implemented yet`);
+  } catch (error) {
+    logError('Replace all failed', error);
+  }
+}
+
+function handleClearFind(): void {
+  if (!editorView) return;
+
+  try {
+    editorView.dispatch({
+      effects: setSearchQuery.of(new SearchQuery({ search: '' }))
+    });
+    log('Cleared find');
+  } catch (error) {
+    logError('Clear find failed', error);
+  }
 }
 
 /**

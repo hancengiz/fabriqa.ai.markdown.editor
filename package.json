@@ -146,6 +146,26 @@
         "title": "Create/Edit Sidebar Config",
         "category": "fabriqa",
         "icon": "$(new-file)"
+      },
+      {
+        "command": "fabriqa.find",
+        "title": "Find in Editor",
+        "category": "fabriqa"
+      },
+      {
+        "command": "fabriqa.findNext",
+        "title": "Find Next",
+        "category": "fabriqa"
+      },
+      {
+        "command": "fabriqa.findPrevious",
+        "title": "Find Previous",
+        "category": "fabriqa"
+      },
+      {
+        "command": "fabriqa.clearFind",
+        "title": "Clear Find",
+        "category": "fabriqa"
       }
     ],
     "menus": {
@@ -270,7 +290,32 @@
           "description": "Enable debug logging (creates log files in .vscode/logs and shows detailed console output)"
         }
       }
-    }
+    },
+    "keybindings": [
+      {
+        "command": "fabriqa.find",
+        "key": "ctrl+f",
+        "mac": "cmd+f",
+        "when": "activeCustomEditorId == fabriqa.markdownEditor"
+      },
+      {
+        "command": "fabriqa.findNext",
+        "key": "f3",
+        "mac": "f3",
+        "when": "activeCustomEditorId == fabriqa.markdownEditor"
+      },
+      {
+        "command": "fabriqa.findPrevious",
+        "key": "shift+f3",
+        "mac": "shift+f3",
+        "when": "activeCustomEditorId == fabriqa.markdownEditor"
+      },
+      {
+        "command": "fabriqa.clearFind",
+        "key": "escape",
+        "when": "activeCustomEditorId == fabriqa.markdownEditor"
+      }
+    ]
   },
   "scripts": {
     "vscode:prepublish": "npm run build",
