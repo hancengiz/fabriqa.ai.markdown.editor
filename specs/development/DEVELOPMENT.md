@@ -245,7 +245,7 @@ function getModeExtensions(mode: EditorMode) {
 ## File Structure
 
 ```
-fabriqa.ai.markdown.editor/
+fabriqa.ai-markdown-editor/
 ├── src/                          # Extension host code (Node.js)
 │   ├── commands/
 │   │   └── index.ts              # All commands
@@ -349,5 +349,5 @@ fabriqa.ai.markdown.editor/
 
 ## Support
 
-- Report issues: [GitHub Issues](https://github.com/yourusername/fabriqa.ai.markdown.editor/issues)
-- Ask questions: [Discussions](https://github.com/yourusername/fabriqa.ai.markdown.editor/discussions)
+- Report issues: [GitHub Issues](https://github.com/yourusername/fabriqa.ai-markdown-editor/issues)
+- Ask questions: [Discussions](https://github.com/yourusername/fabriqa.ai-markdown-editor/discussions)

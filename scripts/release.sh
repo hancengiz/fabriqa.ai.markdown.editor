@@ -64,7 +64,7 @@ npm run build
 echo -e "${BLUE}📦 Packaging extension...${NC}"
 npx vsce package --no-dependencies
 
-echo -e "${BLUE}✅ Package created: fabriqa.ai.markdown.editor-$NEW_VERSION.vsix${NC}"
+echo -e "${BLUE}✅ Package created: fabriqa.ai-markdown-editor-$NEW_VERSION.vsix${NC}"
 echo ""
 
 # Ask if user wants to test locally
@@ -72,7 +72,7 @@ read -p "Test installation locally? (y/N) " -n 1 -r
 echo
 if [[ $REPLY =~ ^[Yy]$ ]]; then
   echo -e "${BLUE}📥 Installing extension locally...${NC}"
-  code --install-extension "fabriqa.ai.markdown.editor-$NEW_VERSION.vsix"
+  code --install-extension "fabriqa.ai-markdown-editor-$NEW_VERSION.vsix"
   echo -e "${YELLOW}⚠️  Please test the extension in VS Code${NC}"
   read -p "Press enter when testing is complete..."
 fi
@@ -126,7 +126,7 @@ echo -e "${GREEN}✅ Release v$NEW_VERSION created successfully!${NC}"
 echo ""
 echo -e "${BLUE}📊 Next steps:${NC}"
 echo -e "  1. Monitor GitHub Actions: https://github.com/$(git config --get remote.origin.url | sed 's/.*:\(.*\)\.git/\1/')/actions"
-echo -e "  2. Check marketplace (in ~10 min): https://marketplace.visualstudio.com/items?itemName=fabriqa.fabriqa.ai.markdown.editor"
+echo -e "  2. Check marketplace (in ~10 min): https://marketplace.visualstudio.com/items?itemName=fabriqa.fabriqa.ai-markdown-editor"
 echo -e "  3. Verify GitHub release: https://github.com/$(git config --get remote.origin.url | sed 's/.*:\(.*\)\.git/\1/')/releases"
 echo ""
 echo -e "${GREEN}🎉 Publishing automation is now running!${NC}"

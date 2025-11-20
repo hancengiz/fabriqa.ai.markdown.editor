@@ -172,7 +172,7 @@ Then press **Cmd/Ctrl+R** in the Extension Development Host window to reload.
 ## Project Structure
 
 ```
-fabriqa.ai.markdown.editor/
+fabriqa.ai-markdown-editor/
 ├── src/                      # Extension host code (Node.js)
 │   ├── extension.ts          # Extension entry point
 │   ├── config/               # Configuration management

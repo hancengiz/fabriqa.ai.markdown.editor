@@ -410,7 +410,7 @@ export function registerCommands(
 
         case 'open':
           if (value === 'settings') {
-            await vscode.commands.executeCommand('workbench.action.openSettings', '@ext:fabriqaai.fabriqa-markdown-editor');
+            await vscode.commands.executeCommand('workbench.action.openSettings', '@ext:fabriqaai.markdown-editor');
           }
           break;
 

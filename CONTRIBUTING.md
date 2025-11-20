@@ -22,8 +22,8 @@ Thank you for your interest in contributing! This document provides guidelines a
 
 ```bash
 # Clone the repository
-git clone https://github.com/yourusername/fabriqa.ai.markdown.editor.git
-cd fabriqa.ai.markdown.editor
+git clone https://github.com/yourusername/fabriqa.ai-markdown-editor.git
+cd fabriqa.ai-markdown-editor
 
 # Install dependencies
 npm install
@@ -310,7 +310,7 @@ Add screenshots for UI changes
 
 To request a feature:
 
-1. Check if it already exists in [Issues](https://github.com/yourusername/fabriqa.ai.markdown.editor/issues)
+1. Check if it already exists in [Issues](https://github.com/yourusername/fabriqa.ai-markdown-editor/issues)
 2. Open a new issue with:
    - Clear description
    - Use cases
@@ -334,7 +334,7 @@ To report a bug:
 
 For questions:
 - Check [Documentation](docs/)
-- Search [Discussions](https://github.com/yourusername/fabriqa.ai.markdown.editor/discussions)
+- Search [Discussions](https://github.com/yourusername/fabriqa.ai-markdown-editor/discussions)
 - Open a new discussion
 
 ## License
@@ -344,7 +344,7 @@ By contributing, you agree that your contributions will be licensed under the sa
 ## Need Help?
 
 - Read [DEVELOPMENT.md](docs/DEVELOPMENT.md) for technical details
-- Ask in [Discussions](https://github.com/yourusername/fabriqa.ai.markdown.editor/discussions)
+- Ask in [Discussions](https://github.com/yourusername/fabriqa.ai-markdown-editor/discussions)
 - Contact maintainers
 
 Thank you for contributing! 🎉

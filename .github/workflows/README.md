@@ -73,7 +73,7 @@ Ensure `package.json` has the correct publisher:
 ```json
 {
   "publisher": "fabriqa",
-  "name": "fabriqa.ai.markdown.editor",
+  "name": "fabriqa.ai-markdown-editor",
   "version": "0.1.0"
 }
 ```
@@ -150,7 +150,7 @@ Before creating a new release:
 - [ ] Push code and tags to GitHub
 - [ ] Verify GitHub Actions workflow succeeds
 - [ ] Check extension on [VS Code Marketplace](https://marketplace.visualstudio.com)
-- [ ] Test installation: `code --install-extension fabriqa.fabriqa.ai.markdown.editor`
+- [ ] Test installation: `code --install-extension fabriqa.fabriqa.ai-markdown-editor`
 
 ## Versioning Strategy
 
@@ -209,8 +209,8 @@ Follow [Semantic Versioning](https://semver.org):
 3. View logs for each step
 
 ### View Published Versions
-- Marketplace: https://marketplace.visualstudio.com/items?itemName=fabriqa.fabriqa.ai.markdown.editor
-- GitHub Releases: https://github.com/YOUR_USERNAME/fabriqa.ai.markdown.editor/releases
+- Marketplace: https://marketplace.visualstudio.com/items?itemName=fabriqa.fabriqa.ai-markdown-editor
+- GitHub Releases: https://github.com/YOUR_USERNAME/fabriqa.ai-markdown-editor/releases
 
 ### Check Extension Stats
 - Install count, ratings, and reviews on marketplace page
@@ -222,7 +222,7 @@ Follow [Semantic Versioning](https://semver.org):
    ```bash
    npm run build
    npx vsce package
-   code --install-extension fabriqa.ai.markdown.editor-0.1.0.vsix
+   code --install-extension fabriqa.ai-markdown-editor-0.1.0.vsix
    ```
 
 2. **Keep CHANGELOG.md updated**
@@ -260,7 +260,7 @@ jobs:
   publish:
     environment:
       name: production
-      url: https://marketplace.visualstudio.com/items?itemName=fabriqa.fabriqa.ai.markdown.editor
+      url: https://marketplace.visualstudio.com/items?itemName=fabriqa.fabriqa.ai-markdown-editor
 ```
 
 Then configure environment protection rules in GitHub repository settings.

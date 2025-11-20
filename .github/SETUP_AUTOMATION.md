@@ -74,7 +74,7 @@ Follow these steps to set up automated publishing to VS Code Marketplace via Git
    ```json
    {
      "publisher": "fabriqa",
-     "name": "fabriqa.ai.markdown.editor"
+     "name": "fabriqa.ai-markdown-editor"
    }
    ```
 
@@ -83,7 +83,7 @@ Follow these steps to set up automated publishing to VS Code Marketplace via Git
 ## Step 3: Add Secret to GitHub Repository (2 min)
 
 1. **Go to Your GitHub Repository**
-   - Navigate to: `https://github.com/YOUR_USERNAME/fabriqa.ai.markdown.editor`
+   - Navigate to: `https://github.com/YOUR_USERNAME/fabriqa.ai-markdown-editor`
 
 2. **Open Settings**
    - Click **Settings** tab
@@ -135,18 +135,18 @@ Add these fields to `package.json`:
 ```json
 {
   "publisher": "fabriqa",
-  "name": "fabriqa.ai.markdown.editor",
+  "name": "fabriqa.ai-markdown-editor",
   "displayName": "fabriqa.ai Markdown Editor",
   "version": "0.1.0",
   "icon": "resources/icon.png",
   "repository": {
     "type": "git",
-    "url": "https://github.com/YOUR_USERNAME/fabriqa.ai.markdown.editor.git"
+    "url": "https://github.com/YOUR_USERNAME/fabriqa.ai-markdown-editor.git"
   },
   "bugs": {
-    "url": "https://github.com/YOUR_USERNAME/fabriqa.ai.markdown.editor/issues"
+    "url": "https://github.com/YOUR_USERNAME/fabriqa.ai-markdown-editor/issues"
   },
-  "homepage": "https://github.com/YOUR_USERNAME/fabriqa.ai.markdown.editor#readme",
+  "homepage": "https://github.com/YOUR_USERNAME/fabriqa.ai-markdown-editor#readme",
   "license": "MIT",
   "keywords": [
     "markdown",
@@ -226,10 +226,10 @@ npm run build
 # 3. Package the extension
 npx vsce package
 
-# This creates: fabriqa.ai.markdown.editor-0.1.0.vsix
+# This creates: fabriqa.ai-markdown-editor-0.1.0.vsix
 
 # 4. Test installation
-code --install-extension fabriqa.ai.markdown.editor-0.1.0.vsix
+code --install-extension fabriqa.ai-markdown-editor-0.1.0.vsix
 
 # 5. Open a markdown file and test all features
 ```
@@ -293,20 +293,20 @@ git push origin --tags
 
 2. **Check VS Code Marketplace**
    - Wait 5-10 minutes for marketplace to update
-   - Visit: `https://marketplace.visualstudio.com/items?itemName=fabriqa.fabriqa.ai.markdown.editor`
+   - Visit: `https://marketplace.visualstudio.com/items?itemName=fabriqa.fabriqa.ai-markdown-editor`
    - Verify your extension appears
 
 3. **Test Installation from Marketplace**
    ```bash
    # Uninstall local version first
-   code --uninstall-extension fabriqa.fabriqa.ai.markdown.editor
+   code --uninstall-extension fabriqa.fabriqa.ai-markdown-editor
 
    # Install from marketplace
-   code --install-extension fabriqa.fabriqa.ai.markdown.editor
+   code --install-extension fabriqa.fabriqa.ai-markdown-editor
    ```
 
 4. **Check GitHub Release**
-   - Go to `https://github.com/YOUR_USERNAME/fabriqa.ai.markdown.editor/releases`
+   - Go to `https://github.com/YOUR_USERNAME/fabriqa.ai-markdown-editor/releases`
    - Verify your release appears with the VSIX attachment
 
 ---
@@ -367,7 +367,7 @@ npm version major && git push origin master --tags
 ### Need Help?
 - Check `.github/workflows/README.md` for detailed documentation
 - View workflow logs in GitHub Actions tab
-- Contact support at: https://github.com/YOUR_USERNAME/fabriqa.ai.markdown.editor/issues
+- Contact support at: https://github.com/YOUR_USERNAME/fabriqa.ai-markdown-editor/issues
 
 ---
 

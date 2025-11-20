@@ -76,12 +76,12 @@ Add the following fields to `package.json`:
   "publisher": "fabriqa",
   "repository": {
     "type": "git",
-    "url": "https://github.com/yourusername/fabriqa.ai.markdown.editor"
+    "url": "https://github.com/yourusername/fabriqa.ai-markdown-editor"
   },
   "bugs": {
-    "url": "https://github.com/yourusername/fabriqa.ai.markdown.editor/issues"
+    "url": "https://github.com/yourusername/fabriqa.ai-markdown-editor/issues"
   },
-  "homepage": "https://github.com/yourusername/fabriqa.ai.markdown.editor#readme",
+  "homepage": "https://github.com/yourusername/fabriqa.ai-markdown-editor#readme",
   "license": "MIT",
   "keywords": [
     "markdown",
@@ -179,10 +179,10 @@ vsce login fabriqa
 # 4. Package the extension (creates .vsix file)
 vsce package
 
-# This will create: fabriqa.ai.markdown.editor-0.1.0.vsix
+# This will create: fabriqa.ai-markdown-editor-0.1.0.vsix
 
 # 5. Test the packaged extension locally
-code --install-extension fabriqa.ai.markdown.editor-0.1.0.vsix
+code --install-extension fabriqa.ai-markdown-editor-0.1.0.vsix
 
 # 6. If everything works, publish!
 vsce publish
@@ -211,15 +211,15 @@ vsce package
 
 ### 1. Verify Publication
 
-1. Go to `https://marketplace.visualstudio.com/items?itemName=fabriqa.fabriqa.ai.markdown.editor`
+1. Go to `https://marketplace.visualstudio.com/items?itemName=fabriqa.fabriqa.ai-markdown-editor`
 2. Check that all information displays correctly
-3. Test installation: `code --install-extension fabriqa.fabriqa.ai.markdown.editor`
+3. Test installation: `code --install-extension fabriqa.fabriqa.ai-markdown-editor`
 
 ### 2. Share Your Extension
 
 - Add the marketplace badge to README:
 ```markdown
-[![VS Code Marketplace](https://img.shields.io/visual-studio-marketplace/v/fabriqa.fabriqa.ai.markdown.editor?label=VS%20Code%20Marketplace)](https://marketplace.visualstudio.com/items?itemName=fabriqa.fabriqa.ai.markdown.editor)
+[![VS Code Marketplace](https://img.shields.io/visual-studio-marketplace/v/fabriqa.fabriqa.ai-markdown-editor?label=VS%20Code%20Marketplace)](https://marketplace.visualstudio.com/items?itemName=fabriqa.fabriqa.ai-markdown-editor)
 ```
 
 ## Updating Your Extension
@@ -258,7 +258,7 @@ vsce publish
 - Update package.json to reference the PNG file
 
 ### "Extension activation failed"
-- Test locally first: `code --install-extension fabriqa.ai.markdown.editor-0.1.0.vsix`
+- Test locally first: `code --install-extension fabriqa.ai-markdown-editor-0.1.0.vsix`
 - Check the extension host logs in VS Code: Developer: Show Logs → Extension Host
 
 ### "Files too large"

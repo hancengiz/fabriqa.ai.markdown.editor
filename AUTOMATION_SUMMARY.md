@@ -153,19 +153,19 @@ git push origin master --tags
 ## 🔍 Monitoring Releases
 
 ### GitHub Actions
-- URL: `https://github.com/YOUR_USERNAME/fabriqa.ai.markdown.editor/actions`
+- URL: `https://github.com/YOUR_USERNAME/fabriqa.ai-markdown-editor/actions`
 - Check workflow status
 - View build logs
 - Download artifacts
 
 ### VS Code Marketplace
-- URL: `https://marketplace.visualstudio.com/items?itemName=fabriqa.fabriqa.ai.markdown.editor`
+- URL: `https://marketplace.visualstudio.com/items?itemName=fabriqa.fabriqa.ai-markdown-editor`
 - Check installation count
 - View ratings and reviews
 - Updates appear in ~10 minutes
 
 ### GitHub Releases
-- URL: `https://github.com/YOUR_USERNAME/fabriqa.ai.markdown.editor/releases`
+- URL: `https://github.com/YOUR_USERNAME/fabriqa.ai-markdown-editor/releases`
 - Automatically created on publish
 - Includes VSIX download
 
