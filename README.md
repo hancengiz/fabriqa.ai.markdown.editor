@@ -89,6 +89,41 @@ Configure the extension in VS Code settings (`Cmd/Ctrl + ,`):
 - `fabriqa.lineHeight`: Line height multiplier (default: 1.6)
 - `fabriqa.sidebarSections`: Configure sidebar sections with glob patterns
 
+## Search & Find
+
+The fabriqa Markdown Editor includes powerful search capabilities that integrate seamlessly with VS Code's native find experience:
+
+### In-Document Search
+- **Quick Find**: Press `Cmd+F` / `Ctrl+F` to search within the current document
+- **Search from Cursor**: Searches start from your current cursor position and wrap around to the beginning if needed
+- **Search History**: Your last search term is automatically remembered and pre-filled when you open find again
+- **Smart Navigation**: Both `Cmd+F` + Enter and `F3` behave identically - use whichever feels more natural
+- **Find Previous**: Use `Shift+F3` to search backward
+- **Clear Search**: Press `Escape` to clear search highlights
+
+### Intuitive Search Workflow
+The search behavior is designed to feel natural and efficient:
+
+1. **First Search**: Press `Cmd+F`, type "keyword", press Enter → finds first match after cursor
+2. **Quick Next**: Press `Cmd+F` again → your search term is pre-filled, just press Enter to find next
+3. **Or Use F3**: Alternatively, press `F3` directly for the same "find next" behavior
+
+This unified approach means both `Cmd+F` + Enter and `F3` do the exact same thing, giving you flexibility in your workflow.
+
+### Global Search Integration
+When using VS Code's global search (`Cmd+Shift+F` / `Ctrl+Shift+F`):
+
+- Search results in markdown files automatically open with the fabriqa editor
+- The editor jumps directly to the found text and highlights it
+- All matches across your workspace are accessible through search results
+
+### Smart Content Reveal
+Search intelligently reveals hidden content:
+
+- **Mermaid Diagrams**: Searching text inside a diagram automatically reveals the source code
+- **Collapsed Sections**: Hidden markdown syntax becomes visible when found
+- **Live Preview Mode**: Maintains the live preview experience while showing search matches
+
 ## Keyboard Shortcuts
 
 ### Mode Switching
@@ -101,6 +136,7 @@ Configure the extension in VS Code settings (`Cmd/Ctrl + ,`):
 - `F3` - Find next
 - `Shift+F3` - Find previous
 - `Escape` - Clear search
+- `Cmd+Shift+F` / `Ctrl+Shift+F` - Global search (VS Code native, with fabriqa integration)
 
 ### Markdown Formatting (Cmd+Option on Mac, Ctrl+Alt on Windows/Linux)
 - `Cmd+Option+B` / `Ctrl+Alt+B` - Bold

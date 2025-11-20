@@ -41,6 +41,26 @@ export class MarkdownEditorProvider implements vscode.CustomTextEditorProvider {
   ): Promise<void> {
     Logger.info(`Opening custom editor for ${document.uri.fsPath}`);
 
+    // Check if VS Code wants to reveal a specific position (e.g., from search results)
+    // We need to check this after a short delay to allow VS Code to set the visible range
+    setTimeout(() => {
+      // Check if this document is visible in any text editor with a selection
+      const visibleEditor = vscode.window.visibleTextEditors.find(
+        e => e.document.uri.toString() === document.uri.toString()
+      );
+
+      if (visibleEditor && !visibleEditor.selection.isEmpty) {
+        // VS Code has requested a specific selection (e.g., from search results)
+        const line = visibleEditor.selection.start.line + 1; // Convert to 1-indexed
+        const character = visibleEditor.selection.start.character;
+
+        Logger.info(`Detected selection from VS Code: line ${line}, character ${character}`);
+
+        // Set pending reveal for this position
+        this.setPendingReveal(document.uri, line, character);
+      }
+    }, 100);
+
     // Configure webview
     webviewPanel.webview.options = {
       enableScripts: true,
