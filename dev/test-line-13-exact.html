@@ -1,0 +1,248 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Line 13 Exact Reproduction</title>
+  <style>
+    body {
+      font-family: monospace;
+      padding: 20px;
+      background: #1e1e1e;
+      color: #d4d4d4;
+    }
+    .test-case {
+      margin: 20px 0;
+      padding: 15px;
+      background: #252526;
+      border-left: 3px solid #569cd6;
+    }
+    h1 { color: #569cd6; }
+    pre { background: #1e1e1e; padding: 10px; overflow-x: auto; white-space: pre; }
+    .overlap { color: #f48771; font-weight: bold; }
+    .paragraph { color: #4ec9b0; }
+  </style>
+</head>
+<body>
+  <h1>Line 13 Exact Reproduction</h1>
+  <h2>Testing: **The Three-Course Journey:** as its own line</h2>
+
+  <div id="output"></div>
+
+  <script type="module">
+    import { EditorState } from '@codemirror/state';
+    import { markdown } from '@codemirror/lang-markdown';
+    import { syntaxTree } from '@codemirror/language';
+
+    // Create the exact scenario: line 13 with bold text as its own line
+    const buildDocument = (numLinesBeforeBold, numLinesAfterBold, boldIsOwnLine) => {
+      let lines = [];
+
+      // Lines before
+      for (let i = 1; i <= numLinesBeforeBold; i++) {
+        lines.push(`Line ${i} content here`);
+      }
+
+      // The bold line
+      if (boldIsOwnLine) {
+        lines.push('**The Three-Course Journey:**');
+      } else {
+        lines.push('Some text **The Three-Course Journey:** more text');
+      }
+
+      // Lines after
+      for (let i = 1; i <= numLinesAfterBold; i++) {
+        lines.push(`Line ${numLinesBeforeBold + 1 + i} content`);
+      }
+
+      return lines.join('\n');
+    };
+
+    const testCases = [
+      {
+        name: 'Control: Bold on line 1 (no lines before)',
+        text: buildDocument(0, 0, true),
+        lineNum: 1
+      },
+      {
+        name: 'Bold on line 2 (1 line before)',
+        text: buildDocument(1, 0, true),
+        lineNum: 2
+      },
+      {
+        name: 'Bold on line 13 (12 lines before) - EXACT SCENARIO',
+        text: buildDocument(12, 1, true),
+        lineNum: 13
+      },
+      {
+        name: 'Control: Bold inline with text on line 13',
+        text: buildDocument(12, 1, false),
+        lineNum: 13
+      }
+    ];
+
+    let output = '';
+
+    testCases.forEach((testCase, idx) => {
+      const state = EditorState.create({
+        doc: testCase.text,
+        extensions: [markdown()]
+      });
+
+      const tree = syntaxTree(state);
+
+      // Find the line with bold
+      const lines = testCase.text.split('\n');
+      const boldLineText = lines[testCase.lineNum - 1];
+      const boldLineStart = lines.slice(0, testCase.lineNum - 1).join('\n').length + (testCase.lineNum > 1 ? 1 : 0);
+      const boldLineEnd = boldLineStart + boldLineText.length;
+
+      const boldStart = testCase.text.indexOf('**The Three-Course Journey:**');
+      const boldEnd = boldStart + '**The Three-Course Journey:**'.length;
+
+      output += `<div class="test-case">`;
+      output += `<h3>${testCase.name}</h3>`;
+      output += `<p><strong>Line ${testCase.lineNum}:</strong> <code>${boldLineText}</code></p>`;
+      output += `<p><strong>Line ${testCase.lineNum} range:</strong> ${boldLineStart}-${boldLineEnd}</p>`;
+      output += `<p><strong>Bold text range:</strong> ${boldStart}-${boldEnd}</p>`;
+
+      // Collect all nodes
+      const allNodes = [];
+      tree.iterate({
+        enter: (node) => {
+          const { from, to, type } = node;
+          const text = state.doc.sliceString(from, to);
+          allNodes.push({
+            name: type.name,
+            from,
+            to,
+            text: text.replace(/\n/g, '\\n'),
+            depth: getDepth(node)
+          });
+        }
+      });
+
+      // Show nodes that overlap with line 13
+      const nodesOnBoldLine = allNodes.filter(n =>
+        (n.from <= boldLineEnd && n.to >= boldLineStart) &&
+        n.name !== 'Document'
+      );
+
+      output += `<p><strong>Nodes that touch line ${testCase.lineNum}:</strong></p>`;
+      output += `<pre>`;
+      nodesOnBoldLine.forEach(node => {
+        const indent = '  '.repeat(node.depth);
+        let cssClass = '';
+        if (node.name === 'Paragraph') cssClass = 'paragraph';
+        if (node.name === 'EmphasisMark') cssClass = 'overlap';
+
+        output += indent;
+        output += `<span class="${cssClass}">${node.name}</span>`;
+        output += ` (${node.from}-${node.to})`;
+        if (node.text.length < 50) {
+          output += ` "${node.text}"`;
+        }
+        output += '\n';
+      });
+      output += `</pre>`;
+
+      // SIMULATE OLD CODE: What decorations would be created?
+      output += `<p><strong>OLD code decoration simulation:</strong></p>`;
+
+      const oldCodeDecorations = [];
+
+      nodesOnBoldLine.forEach(node => {
+        const { from, to, name } = node;
+        const nodeText = state.doc.sliceString(from, to);
+
+        // HeaderMark case
+        if (name === 'HeaderMark' && nodeText.match(/^#+\s?$/)) {
+          oldCodeDecorations.push({ range: `${from}-${to}`, source: 'HeaderMark case' });
+        }
+
+        // ATXHeading1-6 cases
+        if (name.startsWith('ATXHeading') && nodeText.startsWith('#')) {
+          const match = nodeText.match(/^(#+\s?)/);
+          if (match) {
+            const hashEnd = from + match[1].length;
+            oldCodeDecorations.push({ range: `${from}-${hashEnd}`, source: `${name} case` });
+          }
+        }
+
+        // EmphasisMark case
+        if (name === 'EmphasisMark' && nodeText.match(/^[*_]+$/)) {
+          oldCodeDecorations.push({ range: `${from}-${to}`, source: 'EmphasisMark case' });
+        }
+
+        // StrongEmphasisMark case (even though this node type doesn't exist!)
+        if (name === 'StrongEmphasisMark' && nodeText.match(/^[*_]{2,}$/)) {
+          oldCodeDecorations.push({ range: `${from}-${to}`, source: 'StrongEmphasisMark case (phantom!)' });
+        }
+      });
+
+      output += `<ul>`;
+      output += `<li>Total decorations: ${oldCodeDecorations.length}</li>`;
+      oldCodeDecorations.forEach(dec => {
+        output += `<li><code>${dec.range}</code> from ${dec.source}</li>`;
+      });
+      output += `</ul>`;
+
+      // Check for overlaps
+      const overlaps = [];
+      for (let i = 0; i < oldCodeDecorations.length; i++) {
+        for (let j = i + 1; j < oldCodeDecorations.length; j++) {
+          const [from1, to1] = oldCodeDecorations[i].range.split('-').map(Number);
+          const [from2, to2] = oldCodeDecorations[j].range.split('-').map(Number);
+
+          if ((from1 < to2 && to1 > from2)) {
+            overlaps.push({
+              dec1: oldCodeDecorations[i],
+              dec2: oldCodeDecorations[j]
+            });
+          }
+        }
+      }
+
+      if (overlaps.length > 0) {
+        output += `<p class="overlap">⚠️  OVERLAPPING DECORATIONS:</p>`;
+        output += `<ul>`;
+        overlaps.forEach(o => {
+          output += `<li class="overlap">`;
+          output += `<code>${o.dec1.range}</code> (${o.dec1.source}) `;
+          output += `overlaps `;
+          output += `<code>${o.dec2.range}</code> (${o.dec2.source})`;
+          output += `</li>`;
+        });
+        output += `</ul>`;
+        output += `<p class="overlap">👆 This causes the bug!</p>`;
+      } else {
+        output += `<p style="color: #4ec9b0;">✓ No overlaps - would work correctly</p>`;
+      }
+
+      output += `</div>`;
+    });
+
+    output += `<div class="test-case" style="border-left-color: #ce9178;">`;
+    output += `<h3>Expected Result</h3>`;
+    output += `<p>If line 13 as its own line causes overlaps, we'll see them in test case 3.</p>`;
+    output += `<p>The overlaps happen because:</p>`;
+    output += `<ul>`;
+    output += `<li>Paragraph nodes may extend across line boundaries</li>`;
+    output += `<li>OLD code processes ALL nodes without checking if ranges are already decorated</li>`;
+    output += `<li>Multiple cases (EmphasisMark, potentially ATXHeading if misidentified) fire</li>`;
+    output += `<li>Result: Same positions get decorated multiple times</li>`;
+    output += `</ul>`;
+    output += `</div>`;
+
+    document.getElementById('output').innerHTML = output;
+
+    function getDepth(node) {
+      let depth = 0;
+      let current = node.node;
+      while (current.parent) {
+        depth++;
+        current = current.parent;
+      }
+      return depth;
+    }
+  </script>
+</body>
+</html>

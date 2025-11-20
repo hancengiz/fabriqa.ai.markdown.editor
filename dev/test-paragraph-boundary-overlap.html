@@ -1,0 +1,248 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Paragraph Boundary Overlap Test</title>
+  <style>
+    body {
+      font-family: monospace;
+      padding: 20px;
+      background: #1e1e1e;
+      color: #d4d4d4;
+    }
+    .test-case {
+      margin: 20px 0;
+      padding: 15px;
+      background: #252526;
+      border-left: 3px solid #569cd6;
+    }
+    h1 { color: #569cd6; }
+    pre { background: #1e1e1e; padding: 10px; overflow-x: auto; white-space: pre; }
+    .overlap { color: #f48771; font-weight: bold; }
+    .paragraph { color: #4ec9b0; }
+    .emphasis { color: #dcdcaa; }
+  </style>
+</head>
+<body>
+  <h1>Paragraph Boundary Overlap Test</h1>
+  <h2>Hypothesis: Line breaks cause overlapping Paragraph nodes</h2>
+
+  <div id="output"></div>
+
+  <script type="module">
+    import { EditorState } from '@codemirror/state';
+    import { markdown } from '@codemirror/lang-markdown';
+    import { syntaxTree } from '@codemirror/language';
+
+    const testCases = [
+      {
+        name: 'No line break (control)',
+        text: '**The Three-Course Journey:**',
+        description: 'Single line, no paragraph boundaries'
+      },
+      {
+        name: 'Line break BEFORE bold (line 13 scenario)',
+        text: 'Previous line text\n**The Three-Course Journey:**',
+        description: 'Bold text starts on line 2 after \\n'
+      },
+      {
+        name: 'Line break AFTER bold',
+        text: '**The Three-Course Journey:**\nNext line text',
+        description: 'Bold text ends before \\n'
+      },
+      {
+        name: 'Line breaks BOTH sides',
+        text: 'Previous line\n**The Three-Course Journey:**\nNext line',
+        description: 'Bold text on its own line'
+      },
+      {
+        name: 'Blank line BEFORE bold (new paragraph)',
+        text: 'Previous paragraph\n\n**The Three-Course Journey:**',
+        description: 'Blank line creates new paragraph'
+      },
+      {
+        name: 'Line 13 realistic scenario',
+        text: 'Line 11\nLine 12\n**The Three-Course Journey:**\nLine 14',
+        description: 'Bold on line 13 with lines before/after'
+      }
+    ];
+
+    let output = '';
+
+    testCases.forEach((testCase, idx) => {
+      const state = EditorState.create({
+        doc: testCase.text,
+        extensions: [markdown()]
+      });
+
+      const tree = syntaxTree(state);
+
+      // Find bold text position
+      const boldStart = testCase.text.indexOf('**The Three-Course Journey:**');
+      const boldEnd = boldStart + '**The Three-Course Journey:**'.length;
+
+      output += `<div class="test-case">`;
+      output += `<h3>${testCase.name}</h3>`;
+      output += `<p><strong>Description:</strong> ${testCase.description}</p>`;
+      output += `<p><strong>Text:</strong></p>`;
+      output += `<pre>${testCase.text.replace(/\n/g, '↵\n')}</pre>`;
+
+      if (boldStart >= 0) {
+        output += `<p><strong>Bold text range:</strong> ${boldStart}-${boldEnd}</p>`;
+      }
+
+      // Collect ALL nodes
+      const allNodes = [];
+      tree.iterate({
+        enter: (node) => {
+          const { from, to, type } = node;
+          const text = state.doc.sliceString(from, to);
+          allNodes.push({
+            name: type.name,
+            from,
+            to,
+            text: text.replace(/\n/g, '\\n'),
+            depth: getDepth(node)
+          });
+        }
+      });
+
+      // Show full tree
+      output += `<p><strong>Syntax Tree:</strong></p>`;
+      output += `<pre>`;
+      allNodes.forEach(node => {
+        const indent = '  '.repeat(node.depth);
+        let cssClass = '';
+        if (node.name === 'Paragraph') cssClass = 'paragraph';
+        if (node.name === 'EmphasisMark') cssClass = 'emphasis';
+        if (node.name === 'StrongEmphasis') cssClass = 'emphasis';
+
+        output += indent;
+        output += `<span class="${cssClass}">${node.name}</span>`;
+        output += ` (${node.from}-${node.to})`;
+        if (node.text.length < 40) {
+          output += ` "${node.text}"`;
+        }
+        output += '\n';
+      });
+      output += `</pre>`;
+
+      // CRITICAL: Check for overlapping ranges
+      const paragraphs = allNodes.filter(n => n.name === 'Paragraph');
+      const emphasisMarks = allNodes.filter(n => n.name === 'EmphasisMark');
+
+      output += `<p><strong>Analysis:</strong></p>`;
+      output += `<ul>`;
+      output += `<li>Paragraph nodes: ${paragraphs.length}</li>`;
+      output += `<li>EmphasisMark nodes: ${emphasisMarks.length}</li>`;
+      output += `</ul>`;
+
+      // Check if paragraphs overlap with bold text
+      if (boldStart >= 0 && paragraphs.length > 0) {
+        output += `<p><strong>Paragraph boundaries vs Bold text:</strong></p>`;
+        output += `<ul>`;
+        paragraphs.forEach((para, i) => {
+          const overlaps = (para.from < boldEnd && para.to > boldStart);
+          const contains = (para.from <= boldStart && para.to >= boldEnd);
+          const status = overlaps ? (contains ? '✓ Contains' : '⚠️  Partially overlaps') : '(no overlap)';
+
+          output += `<li class="${overlaps && !contains ? 'overlap' : ''}">`;
+          output += `Paragraph ${i + 1}: ${para.from}-${para.to} ${status}`;
+          output += `</li>`;
+        });
+        output += `</ul>`;
+      }
+
+      // CRITICAL: Detect range overlaps that OLD code would create
+      output += `<p><strong>OLD code decoration simulation:</strong></p>`;
+
+      // OLD code would process these node types
+      const decorationCandidates = allNodes.filter(n =>
+        n.name === 'EmphasisMark' ||
+        n.name === 'HeaderMark' ||
+        n.name.startsWith('ATXHeading')
+      );
+
+      // Simulate what OLD code would do
+      const simulatedDecorations = [];
+      decorationCandidates.forEach(node => {
+        simulatedDecorations.push(`${node.from}-${node.to}`);
+      });
+
+      // Also check if ATXHeading cases would fire
+      const headings = allNodes.filter(n => n.name.startsWith('ATXHeading'));
+      if (headings.length > 0) {
+        headings.forEach(h => {
+          const headingText = state.doc.sliceString(h.from, h.to);
+          if (headingText.startsWith('#')) {
+            const match = headingText.match(/^(#+\s?)/);
+            if (match) {
+              const hashEnd = h.from + match[1].length;
+              simulatedDecorations.push(`${h.from}-${hashEnd}`);
+            }
+          }
+        });
+      }
+
+      output += `<ul>`;
+      output += `<li>Decoration targets: ${simulatedDecorations.length}</li>`;
+      simulatedDecorations.forEach(range => {
+        output += `<li><code>${range}</code></li>`;
+      });
+      output += `</ul>`;
+
+      // Check for overlaps in simulated decorations
+      const overlaps = [];
+      for (let i = 0; i < simulatedDecorations.length; i++) {
+        for (let j = i + 1; j < simulatedDecorations.length; j++) {
+          const [from1, to1] = simulatedDecorations[i].split('-').map(Number);
+          const [from2, to2] = simulatedDecorations[j].split('-').map(Number);
+
+          if ((from1 < to2 && to1 > from2)) {
+            overlaps.push(`${simulatedDecorations[i]} overlaps with ${simulatedDecorations[j]}`);
+          }
+        }
+      }
+
+      if (overlaps.length > 0) {
+        output += `<p class="overlap">⚠️  OVERLAPPING DECORATIONS DETECTED:</p>`;
+        output += `<ul>`;
+        overlaps.forEach(o => {
+          output += `<li class="overlap">${o}</li>`;
+        });
+        output += `</ul>`;
+        output += `<p class="overlap">👆 This would cause the bug in OLD code!</p>`;
+      } else if (idx > 0) {
+        output += `<p style="color: #4ec9b0;">✓ No overlaps detected</p>`;
+      }
+
+      output += `</div>`;
+    });
+
+    output += `<div class="test-case" style="border-left-color: #ce9178;">`;
+    output += `<h3>Key Finding</h3>`;
+    output += `<p>If we see overlapping decorations in the "Line break BEFORE bold" test case,
+                   that proves line breaks cause the issue!</p>`;
+    output += `<p>The OLD code would:</p>`;
+    output += `<ul>`;
+    output += `<li>1. Process the paragraph ending at the line break</li>`;
+    output += `<li>2. Process the paragraph starting after the line break</li>`;
+    output += `<li>3. Process EmphasisMark nodes for the ** markers</li>`;
+    output += `<li>4. Create multiple decorations at the same positions</li>`;
+    output += `</ul>`;
+    output += `<p>Result: Overlapping decorations → CodeMirror fails to render → syntax stays visible ❌</p>`;
+    output += `</div>`;
+
+    document.getElementById('output').innerHTML = output;
+
+    function getDepth(node) {
+      let depth = 0;
+      let current = node.node;
+      while (current.parent) {
+        depth++;
+        current = current.parent;
+      }
+      return depth;
+    }
+  </script>
+</body>
+</html>

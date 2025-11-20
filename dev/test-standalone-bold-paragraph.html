@@ -1,0 +1,230 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Standalone Bold Paragraph Test</title>
+  <style>
+    body {
+      font-family: monospace;
+      padding: 20px;
+      background: #1e1e1e;
+      color: #d4d4d4;
+    }
+    .test-case {
+      margin: 20px 0;
+      padding: 15px;
+      background: #252526;
+      border-left: 3px solid #569cd6;
+    }
+    h1 { color: #569cd6; }
+    pre { background: #1e1e1e; padding: 10px; overflow-x: auto; white-space: pre; }
+    .overlap { color: #f48771; font-weight: bold; }
+    .paragraph { color: #4ec9b0; font-weight: bold; }
+    .emphasis { color: #dcdcaa; }
+  </style>
+</head>
+<body>
+  <h1>Standalone Bold Paragraph vs Inline Bold</h1>
+  <h2>The REAL Difference!</h2>
+
+  <div id="output"></div>
+
+  <script type="module">
+    import { EditorState } from '@codemirror/state';
+    import { markdown } from '@codemirror/lang-markdown';
+    import { syntaxTree } from '@codemirror/language';
+
+    const testCases = [
+      {
+        name: 'INLINE BOLD (like line 11 - **120-hour progressive program**)',
+        text: 'This **120-hour progressive program** is great stuff here',
+        boldText: '**120-hour progressive program**'
+      },
+      {
+        name: 'STANDALONE BOLD PARAGRAPH (like line 13 - **The Three-Course Journey:**)',
+        text: 'Previous paragraph\n\n**The Three-Course Journey:**\n\nNext paragraph',
+        boldText: '**The Three-Course Journey:**'
+      },
+      {
+        name: 'STANDALONE BOLD (no blank lines)',
+        text: 'Previous line\n**The Three-Course Journey:**\nNext line',
+        boldText: '**The Three-Course Journey:**'
+      }
+    ];
+
+    let output = '';
+
+    testCases.forEach((testCase, idx) => {
+      const state = EditorState.create({
+        doc: testCase.text,
+        extensions: [markdown()]
+      });
+
+      const tree = syntaxTree(state);
+
+      const boldStart = testCase.text.indexOf(testCase.boldText);
+      const boldEnd = boldStart + testCase.boldText.length;
+
+      output += `<div class="test-case">`;
+      output += `<h3>${testCase.name}</h3>`;
+      output += `<p><strong>Text:</strong></p>`;
+      output += `<pre>${testCase.text.replace(/\n/g, '↵\n')}</pre>`;
+      output += `<p><strong>Bold text range:</strong> ${boldStart}-${boldEnd}</p>`;
+
+      // Collect all nodes
+      const allNodes = [];
+      tree.iterate({
+        enter: (node) => {
+          const { from, to, type } = node;
+          const text = state.doc.sliceString(from, to);
+          allNodes.push({
+            name: type.name,
+            from,
+            to,
+            text: text.replace(/\n/g, '\\n'),
+            depth: getDepth(node)
+          });
+        }
+      });
+
+      // Show tree structure
+      output += `<p><strong>Syntax Tree:</strong></p>`;
+      output += `<pre>`;
+      tree.iterate({
+        enter: (node) => {
+          const { from, to, type } = node;
+          const text = state.doc.sliceString(from, to);
+          const indent = '  '.repeat(getDepth(node));
+
+          // Check if this node contains the bold text
+          const containsBold = from <= boldStart && to >= boldEnd;
+          const isBoldNode = (from === boldStart || from === boldStart + 2) && type.name.includes('Emphasis');
+
+          let cssClass = '';
+          if (type.name === 'Paragraph' && containsBold) cssClass = 'paragraph';
+          if (type.name === 'StrongEmphasis') cssClass = 'emphasis';
+          if (type.name === 'EmphasisMark') cssClass = 'overlap';
+
+          output += indent;
+          output += `<span class="${cssClass}">${type.name}</span>`;
+          output += ` (${from}-${to})`;
+
+          if (text.length < 60) {
+            output += ` "${text.replace(/\n/g, '\\n')}"`;
+          }
+
+          // Highlight if this is the paragraph containing bold
+          if (type.name === 'Paragraph' && containsBold) {
+            const paraSize = to - from;
+            const boldSize = boldEnd - boldStart;
+            const ratio = (boldSize / paraSize * 100).toFixed(0);
+            output += ` <span class="paragraph">← Paragraph is ${ratio}% bold text!</span>`;
+          }
+
+          output += '\n';
+        }
+      });
+      output += `</pre>`;
+
+      // Analysis: Paragraph vs Bold size
+      const paragraphs = allNodes.filter(n => n.name === 'Paragraph' && n.from <= boldStart && n.to >= boldEnd);
+      const strongEmphasis = allNodes.filter(n => n.name === 'StrongEmphasis' && n.from >= boldStart - 5 && n.to <= boldEnd + 5);
+      const emphasisMarks = allNodes.filter(n => n.name === 'EmphasisMark');
+
+      output += `<p><strong>Size Analysis:</strong></p>`;
+      output += `<ul>`;
+
+      if (paragraphs.length > 0) {
+        const para = paragraphs[0];
+        const paraSize = para.to - para.from;
+        const boldSize = boldEnd - boldStart;
+        const ratio = (boldSize / paraSize * 100).toFixed(1);
+
+        output += `<li>Paragraph size: ${paraSize} chars</li>`;
+        output += `<li>Bold text size: ${boldSize} chars</li>`;
+        output += `<li><span class="${ratio > 90 ? 'overlap' : ''}";">Bold is ${ratio}% of paragraph</span></li>`;
+
+        if (ratio > 90) {
+          output += `<li class="overlap">⚠️  Paragraph is ALMOST ENTIRELY bold text!</li>`;
+        }
+      }
+
+      output += `</ul>`;
+
+      // Simulate OLD code
+      output += `<p><strong>OLD code would create these decorations:</strong></p>`;
+      output += `<ul>`;
+
+      const decorations = [];
+
+      emphasisMarks.forEach(mark => {
+        decorations.push(`${mark.from}-${mark.to} (EmphasisMark case)`);
+      });
+
+      // Check if OLD code had ATXHeading cases that might misfire
+      paragraphs.forEach(para => {
+        const paraText = state.doc.sliceString(para.from, para.to);
+        // If paragraph starts with **, the ATXHeading case might try to process it
+        if (paraText.startsWith('**')) {
+          // This is wrong logic but let's see if OLD code did it
+          output += `<li class="overlap">⚠️  Paragraph starts with "**" - could confuse OLD code?</li>`;
+        }
+      });
+
+      decorations.forEach(dec => {
+        output += `<li><code>${dec}</code></li>`;
+      });
+
+      output += `</ul>`;
+
+      // Check node-level tracking issue
+      if (paragraphs.length > 0 && strongEmphasis.length > 0) {
+        const para = paragraphs[0];
+        const strong = strongEmphasis[0];
+        const paraKey = `${para.from}-${para.to}`;
+        const strongKey = `${strong.from}-${strong.to}`;
+
+        output += `<p><strong>OLD code node-level tracking:</strong></p>`;
+        output += `<ul>`;
+        output += `<li>Would track Paragraph: <code>${paraKey}</code></li>`;
+        output += `<li>Would track StrongEmphasis: <code>${strongKey}</code></li>`;
+        output += `</ul>`;
+
+        if (para.from === strong.from || Math.abs(para.to - strong.to) < 5) {
+          output += `<p class="overlap">⚠️  These nodes have ALMOST THE SAME RANGE!</p>`;
+          output += `<p class="overlap">If OLD code skipped children of already-tracked nodes,
+                         it would skip EmphasisMark children of StrongEmphasis!</p>`;
+          output += `<p class="overlap">But the decorations evidence shows EmphasisMark WAS processed,
+                         which means node-level tracking didn't prevent it.</p>`;
+        }
+      }
+
+      output += `</div>`;
+    });
+
+    output += `<div class="test-case" style="border-left-color: #ce9178;">`;
+    output += `<h3>Key Discovery</h3>`;
+    output += `<p>When bold text is a standalone paragraph:</p>`;
+    output += `<ul>`;
+    output += `<li>Paragraph node ≈ StrongEmphasis node (nearly same size)</li>`;
+    output += `<li>EmphasisMark nodes are children of StrongEmphasis</li>`;
+    output += `<li>All three node types exist and get iterated</li>`;
+    output += `</ul>`;
+    output += `<p>The console evidence showed overlapping ranges like 576-580 and 576-579.</p>`;
+    output += `<p>This suggests the OLD code had MULTIPLE switch cases that matched nodes
+                   at the paragraph boundary, creating decorations at adjacent/overlapping positions!</p>`;
+    output += `</div>`;
+
+    document.getElementById('output').innerHTML = output;
+
+    function getDepth(node) {
+      let depth = 0;
+      let current = node.node;
+      while (current.parent) {
+        depth++;
+        current = current.parent;
+      }
+      return depth;
+    }
+  </script>
+</body>
+</html>

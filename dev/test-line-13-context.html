@@ -1,0 +1,209 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Line 13 Context Analysis</title>
+  <style>
+    body {
+      font-family: monospace;
+      padding: 20px;
+      background: #1e1e1e;
+      color: #d4d4d4;
+    }
+    .test-case {
+      margin: 20px 0;
+      padding: 15px;
+      background: #252526;
+      border-left: 3px solid #569cd6;
+    }
+    h1 { color: #569cd6; }
+    pre { background: #1e1e1e; padding: 10px; overflow-x: auto; }
+    .overlap { color: #f48771; font-weight: bold; }
+    .outside { color: #ce9178; }
+  </style>
+</head>
+<body>
+  <h1>Line 13 Context Analysis</h1>
+  <h2>Hypothesis: Line 13 had adjacent markdown syntax</h2>
+
+  <div id="output"></div>
+
+  <script type="module">
+    import { EditorState } from '@codemirror/state';
+    import { markdown } from '@codemirror/lang-markdown';
+    import { syntaxTree } from '@codemirror/language';
+
+    const testCases = [
+      {
+        name: 'Plain bold (no adjacent syntax)',
+        text: '**The Three-Course Journey:**'
+      },
+      {
+        name: 'Bold in a list item',
+        text: '- **The Three-Course Journey:**'
+      },
+      {
+        name: 'Bold with surrounding text',
+        text: 'Text before **The Three-Course Journey:** text after'
+      },
+      {
+        name: 'Bold as list item with following text',
+        text: '- **The Three-Course Journey:** description here'
+      },
+      {
+        name: 'Numbered list with bold',
+        text: '1. **The Three-Course Journey:**'
+      },
+      {
+        name: 'Multiple list levels',
+        text: '  - **The Three-Course Journey:**'
+      }
+    ];
+
+    let output = '';
+
+    testCases.forEach((testCase) => {
+      const state = EditorState.create({
+        doc: testCase.text,
+        extensions: [markdown()]
+      });
+
+      const tree = syntaxTree(state);
+
+      output += `<div class="test-case">`;
+      output += `<h3>${testCase.name}</h3>`;
+      output += `<p><strong>Text:</strong> <code>"${testCase.text}"</code></p>`;
+      output += `<p><strong>Length:</strong> ${testCase.text.length} characters</p>`;
+      output += `<pre>`;
+
+      // Collect all nodes
+      const allNodes = [];
+      tree.iterate({
+        enter: (node) => {
+          const { from, to, type } = node;
+          const text = state.doc.sliceString(from, to);
+          allNodes.push({
+            name: type.name,
+            from,
+            to,
+            text: text.replace(/\n/g, '\\n'),
+            length: to - from
+          });
+        }
+      });
+
+      // Display tree
+      tree.iterate({
+        enter: (node) => {
+          const { from, to, type } = node;
+          const text = state.doc.sliceString(from, to);
+          const indent = '  '.repeat(getDepth(node));
+
+          let highlight = '';
+          if (type.name === 'EmphasisMark') highlight = 'color: #f48771;';
+          if (type.name === 'ListMark') highlight = 'color: #ce9178;';
+          if (type.name === 'StrongEmphasis') highlight = 'color: #dcdcaa;';
+
+          output += indent;
+          output += `<span style="${highlight}">${type.name}</span>`;
+          output += ` (${from}-${to})`;
+          if (text.length < 50) {
+            output += ` "${text.replace(/\n/g, '\\n')}"`;
+          }
+          output += '\n';
+        }
+      });
+
+      output += `</pre>`;
+
+      // Analyze potential overlaps
+      const boldStart = testCase.text.indexOf('**');
+      const boldEnd = testCase.text.lastIndexOf('**') + 2;
+
+      output += `<p><strong>Bold text range:</strong> ${boldStart}-${boldEnd}</p>`;
+
+      // Find nodes that overlap or are adjacent
+      const nodesBeforeBold = allNodes.filter(n =>
+        n.name !== 'Document' &&
+        n.name !== 'Paragraph' &&
+        n.name !== 'ListItem' &&
+        n.to <= boldStart &&
+        n.to >= boldStart - 5  // Within 5 chars before
+      );
+
+      const nodesAfterBold = allNodes.filter(n =>
+        n.name !== 'Document' &&
+        n.name !== 'Paragraph' &&
+        n.name !== 'ListItem' &&
+        n.from >= boldEnd &&
+        n.from <= boldEnd + 5  // Within 5 chars after
+      );
+
+      if (nodesBeforeBold.length > 0) {
+        output += `<p class="outside">⚠️  Nodes BEFORE bold text:</p><ul>`;
+        nodesBeforeBold.forEach(n => {
+          output += `<li>${n.name} (${n.from}-${n.to}): "${n.text}"</li>`;
+        });
+        output += `</ul>`;
+      }
+
+      if (nodesAfterBold.length > 0) {
+        output += `<p class="outside">⚠️  Nodes AFTER bold text:</p><ul>`;
+        nodesAfterBold.forEach(n => {
+          output += `<li>${n.name} (${n.from}-${n.to}): "${n.text}"</li>`;
+        });
+        output += `</ul>`;
+      }
+
+      // Check if OLD code would process multiple nodes for same range
+      const emphasisMarks = allNodes.filter(n => n.name === 'EmphasisMark');
+      const strongEmphasis = allNodes.filter(n => n.name === 'StrongEmphasis');
+      const listMarks = allNodes.filter(n => n.name === 'ListMark');
+
+      const decorationTargets = [
+        ...emphasisMarks.map(n => ({ ...n, source: 'EmphasisMark case' })),
+        ...listMarks.map(n => ({ ...n, source: 'ListMark case' }))
+      ];
+
+      if (decorationTargets.length > 2) {  // More than just opening and closing
+        output += `<p class="overlap">⚠️  POTENTIAL FOR MULTIPLE DECORATIONS:</p><ul>`;
+        decorationTargets.forEach(target => {
+          output += `<li>${target.source}: ${target.from}-${target.to}</li>`;
+        });
+        output += `</ul>`;
+      }
+
+      output += `</div>`;
+    });
+
+    output += `<div class="test-case" style="border-left-color: #ce9178;">`;
+    output += `<h3>Analysis</h3>`;
+    output += `<p>Based on the evidence showing decorations at positions 576-580 (before) and 621-624 (after) the bold text,
+                   line 13 likely had:</p>`;
+    output += `<ul>`;
+    output += `<li>A list marker or other syntax BEFORE the bold text</li>`;
+    output += `<li>Additional text or syntax AFTER the bold text</li>`;
+    output += `<li>Multiple node types that the OLD code tried to decorate</li>`;
+    output += `</ul>`;
+    output += `<p>The OLD code didn't have deduplication, so:</p>`;
+    output += `<ul>`;
+    output += `<li>ListMark case would create decoration at 576-580</li>`;
+    output += `<li>EmphasisMark case would create decorations at 580-582 and 617-619</li>`;
+    output += `<li>Some other case would create decoration at 621-624</li>`;
+    output += `<li>All applied to the SAME LINE, causing overlaps</li>`;
+    output += `</ul>`;
+    output += `</div>`;
+
+    document.getElementById('output').innerHTML = output;
+
+    function getDepth(node) {
+      let depth = 0;
+      let current = node.node;
+      while (current.parent) {
+        depth++;
+        current = current.parent;
+      }
+      return depth;
+    }
+  </script>
+</body>
+</html>

@@ -1,0 +1,226 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Line Break Node Analysis</title>
+  <style>
+    body {
+      font-family: monospace;
+      padding: 20px;
+      background: #1e1e1e;
+      color: #d4d4d4;
+    }
+    .test-case {
+      margin: 20px 0;
+      padding: 15px;
+      background: #252526;
+      border-left: 3px solid #569cd6;
+    }
+    h1 { color: #569cd6; }
+    pre { background: #1e1e1e; padding: 10px; overflow-x: auto; white-space: pre; }
+    .newline { color: #ce9178; font-weight: bold; }
+    .paragraph { color: #4ec9b0; }
+    .bold { color: #f48771; }
+  </style>
+</head>
+<body>
+  <h1>Line Break & Paragraph Boundary Analysis</h1>
+  <h2>Testing: Does a line break create overlapping nodes?</h2>
+
+  <div id="output"></div>
+
+  <script type="module">
+    import { EditorState } from '@codemirror/state';
+    import { markdown } from '@codemirror/lang-markdown';
+    import { syntaxTree } from '@codemirror/language';
+
+    const testCases = [
+      {
+        name: 'Bold on single line (no line breaks)',
+        text: '**The Three-Course Journey:**',
+        line: 'N/A'
+      },
+      {
+        name: 'Bold at start of line 2 (after newline)',
+        text: 'Line 1 text\n**The Three-Course Journey:**',
+        line: '2'
+      },
+      {
+        name: 'Bold at end of line (before newline)',
+        text: '**The Three-Course Journey:**\nLine 2 text',
+        line: '1'
+      },
+      {
+        name: 'Bold on line 13 (realistic scenario)',
+        text: 'Line 1\nLine 2\nLine 3\nLine 4\nLine 5\nLine 6\nLine 7\nLine 8\nLine 9\nLine 10\nLine 11\nLine 12\n**The Three-Course Journey:**\nLine 14',
+        line: '13'
+      },
+      {
+        name: 'Bold within paragraph (no blank lines)',
+        text: 'Previous text\n**The Three-Course Journey:**\nNext text',
+        line: '2'
+      },
+      {
+        name: 'Bold as NEW paragraph (blank line before)',
+        text: 'Previous paragraph\n\n**The Three-Course Journey:**',
+        line: '3'
+      },
+      {
+        name: 'Bold ending paragraph (blank line after)',
+        text: '**The Three-Course Journey:**\n\nNext paragraph',
+        line: '1'
+      }
+    ];
+
+    let output = '';
+
+    testCases.forEach((testCase, index) => {
+      const state = EditorState.create({
+        doc: testCase.text,
+        extensions: [markdown()]
+      });
+
+      const tree = syntaxTree(state);
+
+      output += `<div class="test-case">`;
+      output += `<h3>${testCase.name}</h3>`;
+      output += `<p><strong>Line number:</strong> ${testCase.line}</p>`;
+      output += `<p><strong>Text preview:</strong></p>`;
+      output += `<pre>${testCase.text.substring(0, 100).replace(/\n/g, '↵\n')}</pre>`;
+
+      // Find the bold text position
+      const boldStart = testCase.text.indexOf('**The Three-Course Journey:**');
+      const boldEnd = boldStart + '**The Three-Course Journey:**'.length;
+
+      output += `<p><strong>Bold text range:</strong> ${boldStart}-${boldEnd}</p>`;
+
+      // Collect all nodes
+      const allNodes = [];
+      tree.iterate({
+        enter: (node) => {
+          const { from, to, type } = node;
+          const text = state.doc.sliceString(from, to);
+          allNodes.push({
+            name: type.name,
+            from,
+            to,
+            text: text.replace(/\n/g, '\\n'),
+            length: to - from
+          });
+        }
+      });
+
+      // Show syntax tree
+      output += `<pre>`;
+      tree.iterate({
+        enter: (node) => {
+          const { from, to, type } = node;
+          const text = state.doc.sliceString(from, to);
+          const indent = '  '.repeat(getDepth(node));
+
+          let highlight = '';
+          if (type.name === 'EmphasisMark') highlight = 'bold';
+          if (type.name === 'StrongEmphasis') highlight = 'bold';
+          if (type.name === 'Paragraph') highlight = 'paragraph';
+
+          output += indent;
+          output += `<span class="${highlight}">${type.name}</span>`;
+          output += ` (${from}-${to})`;
+
+          // Show text for small nodes
+          if (to - from < 50 && text.trim()) {
+            output += ` "${text.replace(/\n/g, '↵')}"`;
+          } else if (to - from < 50) {
+            output += ` (empty/whitespace)`;
+          }
+
+          output += '\n';
+        }
+      });
+      output += `</pre>`;
+
+      // Analyze nodes near the bold text boundaries
+      const nodesBefore = allNodes.filter(n =>
+        n.from < boldStart &&
+        n.to >= boldStart - 2 &&
+        n.name !== 'Document'
+      );
+
+      const nodesAfter = allNodes.filter(n =>
+        n.from <= boldEnd + 2 &&
+        n.to > boldEnd &&
+        n.name !== 'Document'
+      );
+
+      const nodesOverlapping = allNodes.filter(n =>
+        n.from <= boldStart &&
+        n.to >= boldEnd &&
+        n.name !== 'Document' &&
+        n.name !== 'Paragraph' &&
+        n.name !== 'StrongEmphasis'
+      );
+
+      output += `<p><strong>Analysis:</strong></p>`;
+      output += `<ul>`;
+      output += `<li>Total nodes in tree: ${allNodes.length}</li>`;
+      output += `<li>Nodes touching/before bold start: ${nodesBefore.length}</li>`;
+      output += `<li>Nodes touching/after bold end: ${nodesAfter.length}</li>`;
+      output += `<li>Nodes spanning bold text: ${nodesOverlapping.length}</li>`;
+      output += `</ul>`;
+
+      if (nodesBefore.length > 0) {
+        output += `<p class="newline">⚠️  Nodes NEAR/BEFORE bold text:</p><ul>`;
+        nodesBefore.forEach(n => {
+          output += `<li>${n.name} (${n.from}-${n.to}): "${n.text.substring(0, 20)}"</li>`;
+        });
+        output += `</ul>`;
+      }
+
+      if (nodesAfter.length > 0) {
+        output += `<p class="newline">⚠️  Nodes NEAR/AFTER bold text:</p><ul>`;
+        nodesAfter.forEach(n => {
+          output += `<li>${n.name} (${n.from}-${n.to}): "${n.text.substring(0, 20)}"</li>`;
+        });
+        output += `</ul>`;
+      }
+
+      // Count how many decoration targets the OLD code would have
+      const emphasisMarks = allNodes.filter(n => n.name === 'EmphasisMark');
+      const atxHeadings = allNodes.filter(n => n.name.startsWith('ATXHeading'));
+
+      output += `<p><strong>OLD code would process:</strong></p>`;
+      output += `<ul>`;
+      output += `<li>EmphasisMark nodes: ${emphasisMarks.length}</li>`;
+      if (atxHeadings.length > 0) {
+        output += `<li class="newline">⚠️  ATXHeading nodes: ${atxHeadings.length} (could create duplicates!)</li>`;
+      }
+      output += `</ul>`;
+
+      output += `</div>`;
+    });
+
+    output += `<div class="test-case" style="border-left-color: #ce9178;">`;
+    output += `<h3>Conclusion</h3>`;
+    output += `<p>If line 13 was at a paragraph boundary, or had specific formatting, the Lezer parser may have created:</p>`;
+    output += `<ul>`;
+    output += `<li>Multiple Paragraph nodes with overlapping ranges</li>`;
+    output += `<li>Additional text nodes around line breaks</li>`;
+    output += `<li>Parent nodes that span multiple lines</li>`;
+    output += `</ul>`;
+    output += `<p>The OLD code would process ALL these nodes without checking if ranges were already decorated,
+                   causing overlaps specifically on lines with complex paragraph structure.</p>`;
+    output += `</div>`;
+
+    document.getElementById('output').innerHTML = output;
+
+    function getDepth(node) {
+      let depth = 0;
+      let current = node.node;
+      while (current.parent) {
+        depth++;
+        current = current.parent;
+      }
+      return depth;
+    }
+  </script>
+</body>
+</html>

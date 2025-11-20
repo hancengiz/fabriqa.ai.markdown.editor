@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Lezer Markdown Tree Structure Test</title>
+  <style>
+    body {
+      font-family: monospace;
+      padding: 20px;
+      background: #1e1e1e;
+      color: #d4d4d4;
+    }
+    #output {
+      white-space: pre-wrap;
+      background: #252526;
+      padding: 15px;
+      border-radius: 5px;
+      line-height: 1.6;
+    }
+    .parent { color: #4ec9b0; }
+    .child { color: #dcdcaa; }
+    .overlap { color: #f48771; font-weight: bold; }
+    h1 { color: #569cd6; }
+    h2 { color: #4ec9b0; }
+  </style>
+</head>
+<body>
+  <h1>Lezer Markdown Tree Structure - Overlapping Nodes Demo</h1>
+  <h2>Test Text: "**The Three-Course Journey:**"</h2>
+  <div id="output"></div>
+
+  <script type="module">
+    import { EditorState } from '@codemirror/state';
+    import { markdown } from '@codemirror/lang-markdown';
+    import { syntaxTree } from '@codemirror/language';
+
+    const testText = '**The Three-Course Journey:**';
+
+    const state = EditorState.create({
+      doc: testText,
+      extensions: [markdown()]
+    });
+
+    const tree = syntaxTree(state);
+    let output = '';
+
+    output += `Document: "${testText}"\n`;
+    output += `Length: ${testText.length} characters\n\n`;
+    output += `=`.repeat(60) + '\n';
+    output += 'SYNTAX TREE STRUCTURE\n';
+    output += `=`.repeat(60) + '\n\n';
+
+    // Track visited ranges to detect overlaps
+    const visitedRanges = new Map();
+
+    tree.iterate({
+      enter: (node) => {
+        const { from, to, type } = node;
+        const text = state.doc.sliceString(from, to);
+        const indent = '  '.repeat(getDepth(node));
+
+        // Check for overlaps
+        let overlaps = [];
+        for (let pos = from; pos < to; pos++) {
+          if (visitedRanges.has(pos)) {
+            overlaps.push({ pos, previous: visitedRanges.get(pos) });
+          }
+        }
+
+        // Mark this range as visited
+        for (let pos = from; pos < to; pos++) {
+          visitedRanges.set(pos, type.name);
+        }
+
+        output += indent;
+        if (type.name === 'StrongEmphasis') {
+          output += `<span class="parent">${type.name}</span>`;
+        } else if (type.name === 'EmphasisMark') {
+          output += `<span class="child">${type.name}</span>`;
+        } else {
+          output += type.name;
+        }
+
+        output += ` (${from}-${to})`;
+        output += ` "${text.replace(/\n/g, '\\n')}"`;
+
+        if (overlaps.length > 0) {
+          output += ` <span class="overlap">⚠️  OVERLAPS with ${overlaps[0].previous}</span>`;
+        }
+
+        output += '\n';
+      }
+    });
+
+    output += '\n' + `=`.repeat(60) + '\n';
+    output += 'OVERLAP ANALYSIS\n';
+    output += `=`.repeat(60) + '\n\n';
+
+    // Analyze overlaps in detail
+    tree.iterate({
+      enter: (node) => {
+        const { from, to, type } = node;
+
+        if (type.name === 'StrongEmphasis' || type.name === 'EmphasisMark') {
+          const text = state.doc.sliceString(from, to);
+          output += `${type.name.padEnd(20)} covers range ${from.toString().padStart(2)}-${to.toString().padEnd(2)} = "${text}"\n`;
+        }
+      }
+    });
+
+    output += '\n<span class="overlap">The ** markers at positions 0-2 and 27-29 are covered by BOTH:';
+    output += '\n  1. StrongEmphasis parent node (entire range)';
+    output += '\n  2. EmphasisMark child nodes (just the markers)</span>\n\n';
+    output += 'This is why your original code created multiple decorations at the same position!\n\n';
+    output += '<span style="color: #4ec9b0">✓ Solution: Track decorated ranges to prevent duplicates (your fix)</span>\n';
+
+    document.getElementById('output').innerHTML = output;
+
+    function getDepth(node) {
+      let depth = 0;
+      let current = node.node;
+      while (current.parent) {
+        depth++;
+        current = current.parent;
+      }
+      return depth;
+    }
+  </script>
+</body>
+</html>

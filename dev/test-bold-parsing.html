@@ -1,0 +1,197 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Bold Text Parsing Comparison</title>
+  <style>
+    body {
+      font-family: monospace;
+      padding: 20px;
+      background: #1e1e1e;
+      color: #d4d4d4;
+    }
+    .test-case {
+      margin: 20px 0;
+      padding: 15px;
+      background: #252526;
+      border-left: 3px solid #569cd6;
+    }
+    .pattern1 { color: #f48771; }
+    .pattern2 { color: #4ec9b0; }
+    h1 { color: #569cd6; }
+    h2 { color: #4ec9b0; }
+    pre { background: #1e1e1e; padding: 10px; overflow-x: auto; }
+  </style>
+</head>
+<body>
+  <h1>Bold Text Parsing Comparison</h1>
+  <h2>Investigating: Why did line 13 have overlapping decorations?</h2>
+
+  <div id="output"></div>
+
+  <script type="module">
+    import { EditorState } from '@codemirror/state';
+    import { markdown } from '@codemirror/lang-markdown';
+    import { syntaxTree } from '@codemirror/language';
+
+    const testCases = [
+      {
+        name: 'LINE 13 (HAD OVERLAP BUG)',
+        text: '**The Three-Course Journey:**',
+        description: 'Bold text with colon at end'
+      },
+      {
+        name: 'SIMPLE BOLD (NO BUG)',
+        text: '**120-hour progressive program**',
+        description: 'Simple bold text with hyphen'
+      },
+      {
+        name: 'TEST: Bold with period',
+        text: '**Hello World.**',
+        description: 'Testing punctuation'
+      },
+      {
+        name: 'TEST: Bold with comma',
+        text: '**Hello World,**',
+        description: 'Testing comma'
+      },
+      {
+        name: 'TEST: Bold plain',
+        text: '**Hello World**',
+        description: 'Plain bold no punctuation'
+      },
+      {
+        name: 'TEST: Bold with colon inside',
+        text: '**Hello: World**',
+        description: 'Colon inside bold'
+      }
+    ];
+
+    let output = '';
+
+    testCases.forEach((testCase, index) => {
+      const state = EditorState.create({
+        doc: testCase.text,
+        extensions: [markdown()]
+      });
+
+      const tree = syntaxTree(state);
+      const classColor = (index === 0) ? 'pattern1' : 'pattern2';
+
+      output += `<div class="test-case">`;
+      output += `<h3 class="${classColor}">${testCase.name}</h3>`;
+      output += `<p><strong>Text:</strong> "${testCase.text}"</p>`;
+      output += `<p><strong>Description:</strong> ${testCase.description}</p>`;
+      output += `<pre>`;
+
+      // Count total nodes
+      let nodeCount = 0;
+      let emphasisMarkCount = 0;
+      let strongEmphasisCount = 0;
+      const allNodes = [];
+
+      tree.iterate({
+        enter: (node) => {
+          nodeCount++;
+          const { from, to, type } = node;
+          const text = state.doc.sliceString(from, to);
+
+          if (type.name === 'EmphasisMark') emphasisMarkCount++;
+          if (type.name === 'StrongEmphasis') strongEmphasisCount++;
+
+          allNodes.push({
+            name: type.name,
+            from,
+            to,
+            text: text.replace(/\n/g, '\\n')
+          });
+        }
+      });
+
+      // Display tree structure
+      tree.iterate({
+        enter: (node) => {
+          const { from, to, type } = node;
+          const text = state.doc.sliceString(from, to);
+          const indent = '  '.repeat(getDepth(node));
+          const highlight = (type.name === 'EmphasisMark' || type.name === 'StrongEmphasis')
+            ? 'font-weight: bold; color: #f48771;'
+            : '';
+
+          output += indent;
+          output += `<span style="${highlight}">${type.name}</span>`;
+          output += ` (${from}-${to}) "${text.replace(/\n/g, '\\n')}"`;
+          output += '\n';
+        }
+      });
+
+      output += `</pre>`;
+      output += `<p><strong>Analysis:</strong></p>`;
+      output += `<ul>`;
+      output += `<li>Total nodes: ${nodeCount}</li>`;
+      output += `<li>StrongEmphasis nodes: ${strongEmphasisCount}</li>`;
+      output += `<li>EmphasisMark nodes: ${emphasisMarkCount}</li>`;
+      output += `</ul>`;
+
+      // Check for potential overlaps
+      output += `<p><strong>Ranges that could cause overlaps:</strong></p>`;
+      output += `<ul>`;
+
+      const emphasisMarks = allNodes.filter(n => n.name === 'EmphasisMark');
+      const strongEmphasis = allNodes.filter(n => n.name === 'StrongEmphasis');
+
+      emphasisMarks.forEach(mark => {
+        output += `<li style="color: #f48771;">EmphasisMark at ${mark.from}-${mark.to}</li>`;
+      });
+
+      strongEmphasis.forEach(strong => {
+        output += `<li style="color: #f48771;">StrongEmphasis at ${strong.from}-${strong.to}</li>`;
+      });
+
+      output += `</ul>`;
+
+      // Show any other nodes that might interfere
+      const otherNodes = allNodes.filter(n =>
+        n.name !== 'Document' &&
+        n.name !== 'Paragraph' &&
+        n.name !== 'EmphasisMark' &&
+        n.name !== 'StrongEmphasis' &&
+        n.name !== 'Text'
+      );
+
+      if (otherNodes.length > 0) {
+        output += `<p style="color: #ce9178;"><strong>⚠️  Additional nodes found:</strong></p>`;
+        output += `<ul>`;
+        otherNodes.forEach(node => {
+          output += `<li>${node.name} at ${node.from}-${node.to}: "${node.text}"</li>`;
+        });
+        output += `</ul>`;
+      }
+
+      output += `</div>`;
+    });
+
+    output += `<div class="test-case" style="border-left-color: #ce9178;">`;
+    output += `<h3>Hypothesis</h3>`;
+    output += `<p>If line 13 parses differently than simple bold text, we should see:</p>`;
+    output += `<ul>`;
+    output += `<li>Different number or types of nodes</li>`;
+    output += `<li>Additional punctuation or text nodes</li>`;
+    output += `<li>Different range boundaries</li>`;
+    output += `</ul>`;
+    output += `<p>This would explain why the OLD code (which didn't have deduplication) created multiple decorations for the same range.</p>`;
+    output += `</div>`;
+
+    document.getElementById('output').innerHTML = output;
+
+    function getDepth(node) {
+      let depth = 0;
+      let current = node.node;
+      while (current.parent) {
+        depth++;
+        current = current.parent;
+      }
+      return depth;
+    }
+  </script>
+</body>
+</html>
