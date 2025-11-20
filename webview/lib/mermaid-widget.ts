@@ -22,7 +22,7 @@ function initMermaid() {
     startOnLoad: false,
     theme: 'default',
     securityLevel: 'loose',
-    fontFamily: 'var(--vscode-editor-font-family)',
+    fontFamily: '-apple-system, BlinkMacSystemFont, \'Segoe UI\', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif',
     gantt: {
       titleTopMargin: 25,
       barHeight: 20,
@@ -80,10 +80,10 @@ export class MermaidDiagramWidget extends WidgetType {
     container.style.cssText = `
       display: block;
       position: relative;
-      border: 1px solid var(--vscode-panel-border);
+      border: 1px solid #d4d4d4;
       border-radius: 4px;
       padding: 16px;
-      background: var(--vscode-editor-background);
+      background: #ffffff;
       margin: 8px 0 8px 0;
       min-height: 100px;
       width: ${customWidth};
@@ -118,8 +118,8 @@ export class MermaidDiagramWidget extends WidgetType {
     `;
     zoomButton.title = 'Zoom diagram';
     zoomButton.style.cssText = `
-      background: var(--vscode-button-background);
-      color: var(--vscode-button-foreground);
+      background: #007acc;
+      color: #ffffff;
       border: none;
       border-radius: 2px;
       padding: 3px 5px;
@@ -128,7 +128,30 @@ export class MermaidDiagramWidget extends WidgetType {
       display: flex;
       align-items: center;
       justify-content: center;
-      font-family: var(--vscode-font-family);
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+    `;
+
+    // Create "Fit to Content" button
+    const fitButton = document.createElement('button');
+    fitButton.className = 'mermaid-fit-btn';
+    fitButton.innerHTML = `
+      <svg width="10" height="10" viewBox="0 0 16 16" fill="currentColor">
+        <path d="M1.5 1a.5.5 0 0 0-.5.5v4a.5.5 0 0 1-1 0v-4A1.5 1.5 0 0 1 1.5 0h4a.5.5 0 0 1 0 1h-4zM10 .5a.5.5 0 0 1 .5-.5h4A1.5 1.5 0 0 1 16 1.5v4a.5.5 0 0 1-1 0v-4a.5.5 0 0 0-.5-.5h-4a.5.5 0 0 1-.5-.5zM.5 10a.5.5 0 0 1 .5.5v4a.5.5 0 0 0 .5.5h4a.5.5 0 0 1 0 1h-4A1.5 1.5 0 0 1 0 14.5v-4a.5.5 0 0 1 .5-.5zm15 0a.5.5 0 0 1 .5.5v4a1.5 1.5 0 0 1-1.5 1.5h-4a.5.5 0 0 1 0-1h4a.5.5 0 0 0 .5-.5v-4a.5.5 0 0 1 .5-.5z"/>
+      </svg>
+    `;
+    fitButton.title = 'Fit to content size';
+    fitButton.style.cssText = `
+      background: #007acc;
+      color: #ffffff;
+      border: none;
+      border-radius: 2px;
+      padding: 3px 5px;
+      font-size: 9px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
     `;
 
     // Create "View Code" button (code icon)
@@ -141,8 +164,8 @@ export class MermaidDiagramWidget extends WidgetType {
     `;
     viewCodeButton.title = 'View code';
     viewCodeButton.style.cssText = `
-      background: var(--vscode-button-background);
-      color: var(--vscode-button-foreground);
+      background: #007acc;
+      color: #ffffff;
       border: none;
       border-radius: 2px;
       padding: 3px 5px;
@@ -151,7 +174,7 @@ export class MermaidDiagramWidget extends WidgetType {
       display: flex;
       align-items: center;
       justify-content: center;
-      font-family: var(--vscode-font-family);
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
     `;
 
     // Create "Reset Size" button (only if custom size exists)
@@ -167,8 +190,8 @@ export class MermaidDiagramWidget extends WidgetType {
       `;
       resetButton.title = 'Reset to default size';
       resetButton.style.cssText = `
-        background: var(--vscode-button-background);
-        color: var(--vscode-button-foreground);
+        background: #007acc;
+        color: #ffffff;
         border: none;
         border-radius: 2px;
         padding: 3px 5px;
@@ -177,11 +200,12 @@ export class MermaidDiagramWidget extends WidgetType {
         display: flex;
         align-items: center;
         justify-content: center;
-        font-family: var(--vscode-font-family);
+        font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
       `;
       buttonContainer.appendChild(resetButton);
     }
 
+    buttonContainer.appendChild(fitButton);
     buttonContainer.appendChild(zoomButton);
     buttonContainer.appendChild(viewCodeButton);
 
@@ -199,23 +223,29 @@ export class MermaidDiagramWidget extends WidgetType {
     // Button hover effects
     if (resetButton) {
       resetButton.addEventListener('mouseenter', () => {
-        resetButton!.style.background = 'var(--vscode-button-hoverBackground)';
+        resetButton!.style.background = '#005a9e';
       });
       resetButton.addEventListener('mouseleave', () => {
-        resetButton!.style.background = 'var(--vscode-button-background)';
+        resetButton!.style.background = '#007acc';
       });
     }
+    fitButton.addEventListener('mouseenter', () => {
+      fitButton.style.background = '#005a9e';
+    });
+    fitButton.addEventListener('mouseleave', () => {
+      fitButton.style.background = '#007acc';
+    });
     zoomButton.addEventListener('mouseenter', () => {
-      zoomButton.style.background = 'var(--vscode-button-hoverBackground)';
+      zoomButton.style.background = '#005a9e';
     });
     zoomButton.addEventListener('mouseleave', () => {
-      zoomButton.style.background = 'var(--vscode-button-background)';
+      zoomButton.style.background = '#007acc';
     });
     viewCodeButton.addEventListener('mouseenter', () => {
-      viewCodeButton.style.background = 'var(--vscode-button-hoverBackground)';
+      viewCodeButton.style.background = '#005a9e';
     });
     viewCodeButton.addEventListener('mouseleave', () => {
-      viewCodeButton.style.background = 'var(--vscode-button-background)';
+      viewCodeButton.style.background = '#007acc';
     });
 
     // Handle "Reset Size" button click
@@ -253,6 +283,26 @@ export class MermaidDiagramWidget extends WidgetType {
         container.style.height = 'auto';
       });
     }
+
+    // Handle "Fit to Content" button click
+    fitButton.addEventListener('click', (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+
+      // Get the actual SVG width from the rendered diagram
+      const svgElement = diagramContainer.querySelector('svg');
+      if (svgElement) {
+        // Get the actual rendered width of the SVG
+        const svgWidth = svgElement.getBoundingClientRect().width;
+
+        // Add padding (32px total: 16px on each side from container padding)
+        const containerWidth = svgWidth + 32;
+
+        // Set container to fit the SVG width
+        container.style.width = `${containerWidth}px`;
+        container.style.height = 'auto';
+      }
+    });
 
     // Handle "View Code" button click
     viewCodeButton.addEventListener('click', (e) => {
@@ -410,7 +460,7 @@ export class MermaidDiagramWidget extends WidgetType {
     try {
       // Show loading indicator
       diagramContainer.innerHTML = `
-        <div style="color: var(--vscode-descriptionForeground); font-size: 12px;">
+        <div style="color: #717171; font-size: 12px;">
           Rendering diagram...
         </div>
       `;
@@ -425,7 +475,7 @@ export class MermaidDiagramWidget extends WidgetType {
       console.error('Failed to render mermaid diagram:', error);
 
       diagramContainer.innerHTML = `
-        <div style="color: var(--vscode-errorForeground); padding: 16px; text-align: center;">
+        <div style="color: #e51400; padding: 16px; text-align: center;">
           <div style="font-weight: bold; margin-bottom: 8px;">
             ⚠️ Mermaid Diagram Error
           </div>
@@ -436,8 +486,8 @@ export class MermaidDiagramWidget extends WidgetType {
       `;
 
       // Add error styling to container
-      container.style.border = '2px solid var(--vscode-errorForeground)';
-      container.style.background = 'var(--vscode-inputValidation-errorBackground)';
+      container.style.border = '2px solid #e51400';
+      container.style.background = '#f2dede';
     }
   }
 
@@ -506,7 +556,7 @@ export class MermaidDiagramWidget extends WidgetType {
       max-width: 95vw;
       max-height: 95vh;
       overflow: auto;
-      background: var(--vscode-editor-background);
+      background: #ffffff;
       border-radius: 8px;
       padding: 30px;
       box-shadow: 0 8px 32px rgba(0, 0, 0, 0.7);

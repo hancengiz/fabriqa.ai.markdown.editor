@@ -30,7 +30,7 @@ export const readingModePlugin = ViewPlugin.fromClass(
         startOnLoad: false,
         theme: 'default',
         securityLevel: 'loose',
-        fontFamily: 'var(--vscode-editor-font-family)',
+        fontFamily: '-apple-system, BlinkMacSystemFont, \'Segoe UI\', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif',
       });
 
       this.mermaidInitialized = true;
@@ -1334,7 +1334,7 @@ export const readingModePlugin = ViewPlugin.fromClass(
         console.error('Failed to render markdown:', error);
         if (this.htmlContainer) {
           this.htmlContainer.innerHTML = `
-            <div style="color: var(--vscode-errorForeground); padding: 20px;">
+            <div style="color: #e51400; padding: 20px;">
               <strong>Error rendering markdown:</strong> ${error}
             </div>
           `;
@@ -1454,10 +1454,10 @@ export const readingModePlugin = ViewPlugin.fromClass(
           container.innerHTML = svg;
           container.style.cssText = `
             position: relative;
-            border: 1px solid var(--vscode-panel-border);
+            border: 1px solid #d4d4d4;
             border-radius: 4px;
             padding: 16px;
-            background: var(--vscode-editor-background);
+            background: #ffffff;
             margin: 16px 0 16px 0;
             overflow: auto;
             width: fit-content;
@@ -1475,24 +1475,24 @@ export const readingModePlugin = ViewPlugin.fromClass(
           errorContainer.className = 'mermaid-error-container';
           errorContainer.style.cssText = `
             position: relative;
-            border: 2px solid var(--vscode-errorForeground);
+            border: 2px solid #e51400;
             border-radius: 4px;
             padding: 16px;
-            background: var(--vscode-inputValidation-errorBackground);
+            background: #f2dede;
             margin: 16px 0;
           `;
           errorContainer.innerHTML = `
-            <div style="color: var(--vscode-errorForeground); font-weight: bold; margin-bottom: 8px;">
+            <div style="color: #e51400; font-weight: bold; margin-bottom: 8px;">
               ⚠️ Mermaid Diagram Error
             </div>
-            <div style="color: var(--vscode-errorForeground); font-size: 12px; font-family: monospace;">
+            <div style="color: #e51400; font-size: 12px; font-family: monospace;">
               ${(error as Error).message || 'Invalid Mermaid syntax'}
             </div>
             <details style="margin-top: 12px;">
-              <summary style="cursor: pointer; color: var(--vscode-descriptionForeground);">
+              <summary style="cursor: pointer; color: #717171;">
                 View Code
               </summary>
-              <pre style="margin-top: 8px; padding: 8px; background: var(--vscode-textCodeBlock-background); border-radius: 3px; overflow: auto;"><code>${mermaidCode}</code></pre>
+              <pre style="margin-top: 8px; padding: 8px; background: #f3f3f3; border-radius: 3px; overflow: auto;"><code>${mermaidCode}</code></pre>
             </details>
           `;
 

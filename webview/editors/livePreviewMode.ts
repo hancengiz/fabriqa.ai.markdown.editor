@@ -24,7 +24,7 @@ class LinkWidget extends WidgetType {
     span.className = 'cm-link-preview';
     span.title = this.url;
     span.style.cssText = `
-      color: var(--vscode-textLink-foreground);
+      color: #006ab1;
       text-decoration: underline;
       cursor: pointer;
     `;
@@ -413,10 +413,10 @@ export const livePreviewPlugin = ViewPlugin.fromClass(
               class: 'cm-inline-code-preview',
               attributes: {
                 style: `
-                  background-color: var(--vscode-textCodeBlock-background);
+                  background-color: #f3f3f3;
                   padding: 2px 4px;
                   border-radius: 3px;
-                  font-family: var(--vscode-editor-font-family);
+                  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
                 `
               }
             }),
@@ -446,7 +446,7 @@ export const livePreviewPlugin = ViewPlugin.fromClass(
               class: 'cm-quote-mark',
               attributes: {
                 style: `
-                  color: var(--vscode-descriptionForeground);
+                  color: #717171;
                   opacity: 0.6;
                 `
               }
@@ -463,7 +463,7 @@ export const livePreviewPlugin = ViewPlugin.fromClass(
               class: 'cm-list-mark',
               attributes: {
                 style: `
-                  color: var(--vscode-symbolIcon-arrayForeground);
+                  color: #0098ff;
                   font-weight: bold;
                 `
               }

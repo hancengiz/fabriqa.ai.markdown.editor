@@ -321,13 +321,13 @@ function getThemeExtensions(): any[] {
       },
       // Search match highlighting (for VS Code native find)
       '.cm-searchMatch': {
-        backgroundColor: 'var(--vscode-editor-findMatchBackground)',
-        outline: '1px solid var(--vscode-editor-findMatchBorder)',
+        backgroundColor: '#ffff00',
+        outline: '1px solid #d4d4d4',
         borderRadius: '1px'
       },
       '.cm-searchMatch-selected': {
-        backgroundColor: 'var(--vscode-editor-findMatchHighlightBackground)',
-        outline: '1px solid var(--vscode-editor-findMatchHighlightBorder)'
+        backgroundColor: '#add6ff',
+        outline: '1px solid #007acc'
       }
     })
   ];
