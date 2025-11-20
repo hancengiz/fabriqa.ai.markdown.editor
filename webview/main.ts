@@ -521,6 +521,19 @@ if (document.readyState === 'loading') {
 /**
  * Find handlers for VS Code native find integration
  * Implements search without opening CodeMirror's search panel
+ *
+ * SEARCH BEHAVIOR:
+ * - All search functions (handleFind, handleFindNext, handleFindPrevious) start from the current cursor position
+ * - This creates an intuitive workflow where Cmd+F with pre-filled text acts like "find next"
+ *
+ * WORKFLOW EXAMPLE:
+ * 1. Press Cmd+F, type "data", press Enter → finds first "data" after cursor
+ * 2. Press Cmd+F again → search text is pre-filled with "data"
+ * 3. Press Enter → finds next "data" after current position (acts like F3)
+ * 4. Alternatively, press F3 directly → same behavior
+ *
+ * This unified "search from cursor" approach makes both Cmd+F+Enter and F3
+ * behave identically, providing a seamless search experience.
  */
 function handleFind(query: string, options?: { caseSensitive?: boolean; wholeWord?: boolean; regexp?: boolean }): void {
   if (!editorView) return;
