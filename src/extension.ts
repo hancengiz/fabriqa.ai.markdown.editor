@@ -59,6 +59,12 @@ export function activate(context: vscode.ExtensionContext): void {
 
 export function deactivate(): void {
   Logger.info('fabriqa Markdown Editor deactivating...');
+
+  // Dispose providers
+  if (editorProvider) {
+    editorProvider.dispose();
+  }
+
   treeProvider = undefined;
   editorProvider = undefined;
 }
