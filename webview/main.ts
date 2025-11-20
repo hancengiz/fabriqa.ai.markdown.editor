@@ -372,15 +372,22 @@ function getThemeExtensions(): any[] {
         borderColor: 'var(--vscode-toolbar-hoverOutline)'
       },
       '.cm-panel label': {
-        color: 'var(--vscode-foreground)',
+        color: 'var(--vscode-input-foreground)',
         fontSize: '12px',
         fontWeight: '400',
         fontFamily: 'var(--vscode-font-family)',
-        marginRight: '6px'
+        marginRight: '6px',
+        display: 'inline-flex',
+        alignItems: 'center',
+        gap: '4px'
       },
       '.cm-panel input[type=checkbox]': {
         cursor: 'pointer',
-        marginRight: '4px'
+        accentColor: 'var(--vscode-checkbox-background)'
+      },
+      '.cm-panel.cm-search [name=close]': {
+        color: 'var(--vscode-foreground)',
+        opacity: '0.8'
       }
     })
   ];
