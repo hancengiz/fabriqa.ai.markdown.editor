@@ -531,6 +531,9 @@ function handleFind(query: string, options?: { caseSensitive?: boolean; wholeWor
       effects: setSearchQuery.of(searchQuery)
     });
 
+    // Automatically jump to first match and select it
+    findNext(editorView);
+
     log(`Find: "${query}" (${JSON.stringify(options)})`);
   } catch (error) {
     logError('Find failed', error);

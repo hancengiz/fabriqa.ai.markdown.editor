@@ -477,6 +477,7 @@ export const livePreviewPlugin = ViewPlugin.fromClass(
     /**
      * Handle Mermaid diagram code blocks
      * Shows diagram widget and hides code block content
+     * Obsidian-style behavior: shows raw code when cursor is inside the block
      */
     handleMermaidDiagram(fencedCodeNode: SyntaxNode, view: EditorView, decorations: Range<Decoration>[], decoratedRanges: Set<string>): void {
       let isMermaid = false;
@@ -494,8 +495,20 @@ export const livePreviewPlugin = ViewPlugin.fromClass(
         }
       });
 
-      // If this is a mermaid code block, add widget and hide content
+      // If this is a mermaid code block, check cursor position
       if (isMermaid && mermaidCode) {
+        const cursorPos = view.state.selection.main.head;
+
+        // Obsidian-style behavior: if cursor is inside the code block, show raw code
+        // This is important for search functionality - when a match is found in mermaid code,
+        // the cursor moves there and the user should see the raw code with the highlighted match
+        if (cursorPos >= codeStart && cursorPos <= codeEnd) {
+          // Cursor is inside this mermaid block - don't add widget or hiding
+          // Show the raw code so user can see/edit it
+          return;
+        }
+
+        // Cursor is outside - show the diagram widget and hide code
         const widgetKey = `mermaid-widget-${codeStart}`;
         const hideKey = `mermaid-hide-${codeStart}`;
 
