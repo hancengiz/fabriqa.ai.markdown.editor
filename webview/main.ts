@@ -5,7 +5,7 @@ import { syntaxHighlighting, defaultHighlightStyle } from '@codemirror/language'
 import { keymap, highlightSpecialChars, drawSelection, highlightActiveLine, dropCursor, rectangularSelection, crosshairCursor, lineNumbers, highlightActiveLineGutter } from '@codemirror/view';
 import { StyleModule } from 'style-mod';
 import { defaultKeymap, history, historyKeymap } from '@codemirror/commands';
-import { searchKeymap, highlightSelectionMatches } from '@codemirror/search';
+import { search, searchKeymap, highlightSelectionMatches } from '@codemirror/search';
 import { autocompletion, completionKeymap, closeBrackets, closeBracketsKeymap } from '@codemirror/autocomplete';
 import { foldGutter, indentOnInput, syntaxHighlighting as syntaxHighlightingFacet, bracketMatching } from '@codemirror/language';
 import { lintKeymap } from '@codemirror/lint';
@@ -44,6 +44,9 @@ const basicExtensions = [
   crosshairCursor(),
   highlightActiveLine(),
   highlightSelectionMatches(),
+  search({
+    top: true,  // Place search panel at the top
+  }),
   keymap.of([
     // Mode switching shortcuts (editor rendering modes)
     {
@@ -318,6 +321,55 @@ function getThemeExtensions(): any[] {
       // Line wrapping
       '.cm-line': {
         padding: '0 4px'
+      },
+      // Search panel styling (VS Code-like)
+      '.cm-panel.cm-search': {
+        backgroundColor: 'var(--vscode-editorWidget-background)',
+        border: '1px solid var(--vscode-editorWidget-border)',
+        padding: '8px',
+        borderRadius: '3px',
+        boxShadow: '0 2px 8px var(--vscode-widget-shadow)'
+      },
+      '.cm-searchMatch': {
+        backgroundColor: 'var(--vscode-editor-findMatchBackground)',
+        border: '1px solid var(--vscode-editor-findMatchBorder)',
+        borderRadius: '2px'
+      },
+      '.cm-searchMatch-selected': {
+        backgroundColor: 'var(--vscode-editor-findMatchHighlightBackground)',
+        border: '1px solid var(--vscode-editor-findMatchHighlightBorder)'
+      },
+      '.cm-panel input[type=text]': {
+        backgroundColor: 'var(--vscode-input-background)',
+        color: 'var(--vscode-input-foreground)',
+        border: '1px solid var(--vscode-input-border)',
+        padding: '4px 8px',
+        borderRadius: '2px',
+        outline: 'none'
+      },
+      '.cm-panel input[type=text]:focus': {
+        border: '1px solid var(--vscode-focusBorder)',
+        outline: '1px solid var(--vscode-focusBorder)',
+        outlineOffset: '-1px'
+      },
+      '.cm-panel button': {
+        backgroundColor: 'var(--vscode-button-background)',
+        color: 'var(--vscode-button-foreground)',
+        border: 'none',
+        padding: '4px 12px',
+        borderRadius: '2px',
+        cursor: 'pointer',
+        fontSize: '12px',
+        fontFamily: 'var(--vscode-font-family)'
+      },
+      '.cm-panel button:hover': {
+        backgroundColor: 'var(--vscode-button-hoverBackground)'
+      },
+      '.cm-panel label': {
+        color: 'var(--vscode-foreground)',
+        fontSize: '12px',
+        fontFamily: 'var(--vscode-font-family)',
+        marginRight: '8px'
       }
     })
   ];
