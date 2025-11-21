@@ -316,6 +316,10 @@ function getThemeExtensions(): any[] {
       '.cm-content': {
         caretColor: theme.editor.cursor
       },
+      // Reset text-decoration for all content spans
+      '.cm-content span': {
+        textDecoration: 'none'
+      },
       '.cm-cursor, .cm-dropCursor': {
         borderLeftColor: theme.editor.cursor,
         borderLeftWidth: '2px'
@@ -372,6 +376,19 @@ function getThemeExtensions(): any[] {
       },
       // Target all CodeMirror heading-related classes
       '[class*="cm-heading"]': {
+        textDecoration: 'none !important',
+        borderBottom: 'none !important'
+      },
+      // Override CodeMirror's syntax highlighting for headings (those ͼ classes)
+      '.cm-line span': {
+        textDecoration: 'inherit !important'
+      },
+      // Specifically target heading content spans
+      '.ͼ6': {
+        textDecoration: 'none !important',
+        borderBottom: 'none !important'
+      },
+      '.ͼ4': {
         textDecoration: 'none !important',
         borderBottom: 'none !important'
       }
