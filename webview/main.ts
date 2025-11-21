@@ -1,7 +1,8 @@
 import { EditorView } from '@codemirror/view';
 import { EditorState, Compartment } from '@codemirror/state';
 import { markdown } from '@codemirror/lang-markdown';
-import { syntaxHighlighting, defaultHighlightStyle } from '@codemirror/language';
+import { syntaxHighlighting, defaultHighlightStyle, HighlightStyle, syntaxHighlighting as syntaxHighlightingFacet2 } from '@codemirror/language';
+import { tags } from '@lezer/highlight';
 import { keymap, highlightSpecialChars, drawSelection, highlightActiveLine, dropCursor, rectangularSelection, crosshairCursor, lineNumbers, highlightActiveLineGutter } from '@codemirror/view';
 import { StyleModule } from 'style-mod';
 import { defaultKeymap, history, historyKeymap } from '@codemirror/commands';
@@ -274,6 +275,19 @@ function getModeExtensions(mode: EditorMode): any[] {
 }
 
 /**
+ * Custom highlight style that removes underlines from headings
+ */
+const customHighlightStyle = HighlightStyle.define([
+  { tag: tags.heading1, textDecoration: 'none' },
+  { tag: tags.heading2, textDecoration: 'none' },
+  { tag: tags.heading3, textDecoration: 'none' },
+  { tag: tags.heading4, textDecoration: 'none' },
+  { tag: tags.heading5, textDecoration: 'none' },
+  { tag: tags.heading6, textDecoration: 'none' },
+  { tag: tags.heading, textDecoration: 'none' },
+]);
+
+/**
  * Get theme extensions (uses centralized theme system)
  */
 function getThemeExtensions(): any[] {
@@ -281,6 +295,7 @@ function getThemeExtensions(): any[] {
 
   return [
     syntaxHighlighting(defaultHighlightStyle),
+    syntaxHighlighting(customHighlightStyle),
     // Use baseTheme for native browser selection only
     EditorView.baseTheme({
       '.cm-content ::selection': {
