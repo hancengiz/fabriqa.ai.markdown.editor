@@ -366,6 +366,11 @@
         "command": "fabriqa.clearFind",
         "key": "escape",
         "when": "activeCustomEditorId == fabriqa.markdownEditor"
+      },
+      {
+        "command": "fabriqa.renameFile",
+        "key": "enter",
+        "when": "focusedView == fabriqa.markdownTree && viewItem == file"
       }
     ]
   },

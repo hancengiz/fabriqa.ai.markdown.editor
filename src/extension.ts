@@ -7,6 +7,7 @@ import { Logger } from './utils/Logger';
 import { WebviewLogger } from './utils/WebviewLogger';
 
 let treeProvider: MarkdownTreeProvider | undefined;
+let treeView: vscode.TreeView<any> | undefined;
 let editorProvider: MarkdownEditorProvider | undefined;
 
 export function activate(context: vscode.ExtensionContext): void {
@@ -24,9 +25,11 @@ export function activate(context: vscode.ExtensionContext): void {
 
     // Create tree provider for sidebar
     treeProvider = new MarkdownTreeProvider(configManager);
-    context.subscriptions.push(
-      vscode.window.registerTreeDataProvider('fabriqa.markdownTree', treeProvider)
-    );
+    treeView = vscode.window.createTreeView('fabriqa.markdownTree', {
+      treeDataProvider: treeProvider,
+      showCollapseAll: true
+    });
+    context.subscriptions.push(treeView);
 
     // Register custom editor provider
     editorProvider = new MarkdownEditorProvider(context, configManager);
@@ -44,7 +47,7 @@ export function activate(context: vscode.ExtensionContext): void {
     );
 
     // Register commands
-    registerCommands(context, treeProvider, editorProvider, configManager);
+    registerCommands(context, treeProvider, treeView, editorProvider, configManager);
 
     // Watch for config file changes
     setupFileWatchers(context, treeProvider, configManager);

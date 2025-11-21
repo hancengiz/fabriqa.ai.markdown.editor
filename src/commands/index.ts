@@ -13,6 +13,7 @@ import { WebviewLogger } from '../utils/WebviewLogger';
 export function registerCommands(
   context: vscode.ExtensionContext,
   treeProvider: MarkdownTreeProvider,
+  treeView: vscode.TreeView<any>,
   editorProvider: MarkdownEditorProvider,
   configManager: ConfigManager
 ): void {
@@ -278,6 +279,11 @@ export function registerCommands(
   context.subscriptions.push(
     vscode.commands.registerCommand('fabriqa.renameFile', async (treeItem?: any) => {
       try {
+        // If no tree item provided, get the selected item from tree view
+        if (!treeItem && treeView.selection.length > 0) {
+          treeItem = treeView.selection[0];
+        }
+
         const file = treeItem?.file;
         if (!file) {
           vscode.window.showErrorMessage('No file selected');
