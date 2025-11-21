@@ -4,7 +4,7 @@
   "description": "Obsidian-like markdown editor with Live Preview, Source, and Reading modes",
   "version": "0.16.2",
   "publisher": "fabriqaai",
-  "icon": "resources/icon.png",
+  "icon": "resources/icon-simple.svg",
   "engines": {
     "vscode": "^1.85.0"
   },
@@ -68,7 +68,7 @@
         {
           "id": "fabriqa.markdownTree",
           "name": "Markdown Files",
-          "icon": "resources/icon.svg",
+          "icon": "resources/icon-simple.svg",
           "contextualTitle": "fabriqa Markdown"
         }
       ]
@@ -79,8 +79,8 @@
         "title": "Open with fabriqa.ai markdown editor",
         "category": "fabriqa",
         "icon": {
-          "light": "resources/fabriqa-toolbar-icon.svg",
-          "dark": "resources/fabriqa-toolbar-icon.svg"
+          "light": "resources/icon-simple.svg",
+          "dark": "resources/icon-simple.svg"
         }
       },
       {
@@ -145,7 +145,7 @@
         "command": "fabriqa.showEditorSettings",
         "title": "Editor Settings",
         "category": "fabriqa",
-        "icon": "resources/fabriqa-toolbar-icon.svg"
+        "icon": "resources/icon-simple.svg"
       },
       {
         "command": "fabriqa.createOrEditSidebarConfig",
@@ -265,8 +265,7 @@
         {
           "command": "fabriqa.openMarkdownEditor",
           "when": "resourceExtname == .md",
-          "group": "navigation@1",
-          "icon": "resources/fabriqa-toolbar-icon.svg"
+          "group": "navigation@1"
         }
       ]
     },
