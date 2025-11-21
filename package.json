@@ -184,6 +184,24 @@
         "command": "fabriqa.revealInOS",
         "title": "Reveal in Finder",
         "category": "fabriqa"
+      },
+      {
+        "command": "fabriqa.zoomIn",
+        "title": "Zoom In",
+        "category": "fabriqa",
+        "icon": "$(zoom-in)"
+      },
+      {
+        "command": "fabriqa.zoomOut",
+        "title": "Zoom Out",
+        "category": "fabriqa",
+        "icon": "$(zoom-out)"
+      },
+      {
+        "command": "fabriqa.zoomReset",
+        "title": "Reset Zoom",
+        "category": "fabriqa",
+        "icon": "$(zoom-reset)"
       }
     ],
     "menus": {
@@ -379,6 +397,24 @@
         "command": "fabriqa.renameFile",
         "key": "enter",
         "when": "focusedView == fabriqa.markdownTree && viewItem == file"
+      },
+      {
+        "command": "fabriqa.zoomIn",
+        "key": "ctrl+=",
+        "mac": "cmd+=",
+        "when": "activeCustomEditorId == fabriqa.markdownEditor"
+      },
+      {
+        "command": "fabriqa.zoomOut",
+        "key": "ctrl+-",
+        "mac": "cmd+-",
+        "when": "activeCustomEditorId == fabriqa.markdownEditor"
+      },
+      {
+        "command": "fabriqa.zoomReset",
+        "key": "ctrl+0",
+        "mac": "cmd+0",
+        "when": "activeCustomEditorId == fabriqa.markdownEditor"
       }
     ]
   },

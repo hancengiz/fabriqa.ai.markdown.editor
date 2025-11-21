@@ -613,5 +613,41 @@ export function registerCommands(
     })
   );
 
+  // Zoom in
+  context.subscriptions.push(
+    vscode.commands.registerCommand('fabriqa.zoomIn', async () => {
+      try {
+        await editorProvider.sendToActiveWebview({ type: 'zoomIn' });
+        Logger.info('Zoom in');
+      } catch (error) {
+        Logger.error('Failed to zoom in', error);
+      }
+    })
+  );
+
+  // Zoom out
+  context.subscriptions.push(
+    vscode.commands.registerCommand('fabriqa.zoomOut', async () => {
+      try {
+        await editorProvider.sendToActiveWebview({ type: 'zoomOut' });
+        Logger.info('Zoom out');
+      } catch (error) {
+        Logger.error('Failed to zoom out', error);
+      }
+    })
+  );
+
+  // Reset zoom
+  context.subscriptions.push(
+    vscode.commands.registerCommand('fabriqa.zoomReset', async () => {
+      try {
+        await editorProvider.sendToActiveWebview({ type: 'zoomReset' });
+        Logger.info('Reset zoom');
+      } catch (error) {
+        Logger.error('Failed to reset zoom', error);
+      }
+    })
+  );
+
 }
 

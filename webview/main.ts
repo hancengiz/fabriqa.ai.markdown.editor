@@ -217,6 +217,14 @@ let currentContent: string = '';
 let isUpdatingFromVSCode = false;
 
 /**
+ * Zoom state
+ */
+let currentZoomLevel = 1.0; // 1.0 = 100%, 1.1 = 110%, etc.
+const ZOOM_STEP = 0.1;
+const MIN_ZOOM = 0.5; // 50%
+const MAX_ZOOM = 3.0; // 300%
+
+/**
  * Initialize the editor
  */
 function initializeEditor(): void {
@@ -556,6 +564,18 @@ function handleMessage(event: MessageEvent): void {
       handleRevealPosition(message.line, message.character);
       break;
 
+    case 'zoomIn':
+      handleZoomIn();
+      break;
+
+    case 'zoomOut':
+      handleZoomOut();
+      break;
+
+    case 'zoomReset':
+      handleZoomReset();
+      break;
+
     default:
       log(`Unknown message type: ${message.type}`);
   }
@@ -857,6 +877,66 @@ function handleRevealPosition(line: number, character: number): void {
   } catch (error) {
     logError('Reveal position failed', error);
   }
+}
+
+/**
+ * Zoom handlers
+ */
+function handleZoomIn(): void {
+  if (!editorView) return;
+
+  try {
+    const newZoom = Math.min(currentZoomLevel + ZOOM_STEP, MAX_ZOOM);
+    if (newZoom !== currentZoomLevel) {
+      currentZoomLevel = newZoom;
+      applyZoom();
+      log(`Zoomed in to ${Math.round(currentZoomLevel * 100)}%`);
+    }
+  } catch (error) {
+    logError('Zoom in failed', error);
+  }
+}
+
+function handleZoomOut(): void {
+  if (!editorView) return;
+
+  try {
+    const newZoom = Math.max(currentZoomLevel - ZOOM_STEP, MIN_ZOOM);
+    if (newZoom !== currentZoomLevel) {
+      currentZoomLevel = newZoom;
+      applyZoom();
+      log(`Zoomed out to ${Math.round(currentZoomLevel * 100)}%`);
+    }
+  } catch (error) {
+    logError('Zoom out failed', error);
+  }
+}
+
+function handleZoomReset(): void {
+  if (!editorView) return;
+
+  try {
+    currentZoomLevel = 1.0;
+    applyZoom();
+    log('Reset zoom to 100%');
+  } catch (error) {
+    logError('Reset zoom failed', error);
+  }
+}
+
+function applyZoom(): void {
+  if (!editorView) return;
+
+  // Apply zoom by scaling the editor content
+  const editorElement = editorView.dom;
+  const scroller = editorElement.querySelector('.cm-scroller') as HTMLElement;
+
+  if (scroller) {
+    scroller.style.fontSize = `${currentZoomLevel * 100}%`;
+  }
+
+  // Also apply to body for consistent scaling
+  document.body.style.fontSize = `${currentZoomLevel * 100}%`;
 }
 
 /**
