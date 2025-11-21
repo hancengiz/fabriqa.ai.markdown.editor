@@ -336,12 +336,27 @@ function getThemeExtensions(): any[] {
       '.cm-line:has(.cm-codeMark)': {
         backgroundColor: theme.code.background
       },
-      // Remove underlines from all headings and their children
+      // Remove underlines from all headings and their children (Live Preview mode)
       '.cm-heading-1, .cm-heading-2, .cm-heading-3, .cm-heading-4, .cm-heading-5, .cm-heading-6': {
         textDecoration: 'none !important',
         borderBottom: 'none !important'
       },
       '.cm-heading-1 *, .cm-heading-2 *, .cm-heading-3 *, .cm-heading-4 *, .cm-heading-5 *, .cm-heading-6 *': {
+        textDecoration: 'none !important',
+        borderBottom: 'none !important'
+      },
+      // Aggressively target all spans within heading lines
+      '.cm-line:has(.cm-heading-1) span, .cm-line:has(.cm-heading-2) span, .cm-line:has(.cm-heading-3) span, .cm-line:has(.cm-heading-4) span, .cm-line:has(.cm-heading-5) span, .cm-line:has(.cm-heading-6) span': {
+        textDecoration: 'none !important',
+        borderBottom: 'none !important'
+      },
+      // Remove underlines from heading syntax in source mode
+      '.cm-headerMark, .cm-heading': {
+        textDecoration: 'none !important',
+        borderBottom: 'none !important'
+      },
+      // Target all CodeMirror heading-related classes
+      '[class*="cm-heading"]': {
         textDecoration: 'none !important',
         borderBottom: 'none !important'
       }
