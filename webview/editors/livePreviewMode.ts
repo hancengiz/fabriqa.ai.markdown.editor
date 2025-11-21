@@ -431,7 +431,6 @@ export const livePreviewPlugin = ViewPlugin.fromClass(
             'ATXHeading1', 'ATXHeading2', 'ATXHeading3',
             'ATXHeading4', 'ATXHeading5', 'ATXHeading6',
             'Blockquote',
-            'ListItem',
             'HorizontalRule',
 
             // Inline structures
