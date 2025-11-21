@@ -206,7 +206,7 @@ class AlertTitleWidget extends WidgetType {
     wrapper.className = 'cm-alert-title';
     wrapper.style.cssText = `
       font-weight: 600;
-      margin-bottom: 8px;
+      margin-bottom: 4px;
       color: ${this.color};
     `;
 
@@ -1179,27 +1179,34 @@ export const livePreviewPlugin = ViewPlugin.fromClass(
           'caution': 'Caution'
         };
 
-        // Apply GitHub alert styling (no background, only colored border like GitHub)
-        addDecoration(
-          Decoration.mark({
-            class: `cm-alert cm-alert-${alertType}`,
-            attributes: {
-              style: `
-                border-left: 4px solid ${alertColors.border};
-                padding: 8px 12px;
-                padding-left: 1em;
-                margin: 8px 0;
-                display: block;
-                position: relative;
-              `
-            }
-          }),
-          from,
-          to
-        );
+        // Apply GitHub alert styling as line decorations for continuous border
+        const doc = view.state.doc;
+        const startLine = doc.lineAt(from);
+        const endLine = doc.lineAt(to);
+
+        for (let lineNum = startLine.number; lineNum <= endLine.number; lineNum++) {
+          const line = doc.line(lineNum);
+          const lineKey = `alert-line-${alertType}-${line.from}`;
+          const isLastLine = lineNum === endLine.number;
+
+          if (!decoratedRanges.has(lineKey)) {
+            decorations.push(
+              Decoration.line({
+                class: `cm-alert-line cm-alert-${alertType}`,
+                attributes: {
+                  style: `
+                    border-left: 0.25em solid ${alertColors.border};
+                    padding-left: 1em;
+                    ${isLastLine ? 'padding-bottom: 1em;' : ''}
+                  `
+                }
+              }).range(line.from)
+            );
+            decoratedRanges.add(lineKey);
+          }
+        }
 
         // Hide ALL quote markers (>) in the alert block
-        // Split by lines and find each > character
         const lines = blockquoteText.split('\n');
         let currentPos = from;
 
