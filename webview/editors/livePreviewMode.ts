@@ -76,7 +76,7 @@ class ImageWidget extends WidgetType {
     const wrapper = document.createElement('span');
     wrapper.className = 'cm-image-wrapper';
     wrapper.style.cssText = `
-      display: inline-block;
+      display: block;
       max-width: 100%;
       margin: 8px 0;
     `;
@@ -384,11 +384,14 @@ export const livePreviewPlugin = ViewPlugin.fromClass(
           // Render checkbox widget for inactive lines
           const isChecked = checkboxText.toLowerCase().includes('x');
 
-          decorations.push(
-            Decoration.replace({
-              widget: new CheckboxWidget(isChecked, view, checkboxStart)
-            }).range(checkboxStart, checkboxEnd)
-          );
+          // Safety check: ensure checkbox text doesn't contain newlines
+          if (!checkboxText.includes('\n')) {
+            decorations.push(
+              Decoration.replace({
+                widget: new CheckboxWidget(isChecked, view, checkboxStart)
+              }).range(checkboxStart, checkboxEnd)
+            );
+          }
         }
       }
     }
@@ -431,6 +434,7 @@ export const livePreviewPlugin = ViewPlugin.fromClass(
             'ATXHeading1', 'ATXHeading2', 'ATXHeading3',
             'ATXHeading4', 'ATXHeading5', 'ATXHeading6',
             'Blockquote',
+            'ListItem',
             'HorizontalRule',
 
             // Inline structures
@@ -624,20 +628,8 @@ export const livePreviewPlugin = ViewPlugin.fromClass(
           break;
 
         case 'QuoteMark':
-          // Style blockquote marks
-          addDecoration(
-            Decoration.mark({
-              class: 'cm-quote-mark',
-              attributes: {
-                style: `
-                  color: ${theme.blockquote.text};
-                  opacity: 0.6;
-                `
-              }
-            }),
-            from,
-            to
-          );
+          // Skip QuoteMark styling - it's handled by Blockquote styling
+          // to avoid decoration conflicts
           break;
 
         case 'Blockquote':
@@ -678,6 +670,11 @@ export const livePreviewPlugin = ViewPlugin.fromClass(
 
         case 'TaskMarker':
           // Replace task list checkboxes with clickable widgets
+          // Safety check: ensure checkbox text doesn't contain newlines
+          if (nodeText.includes('\n')) {
+            break;
+          }
+
           const isChecked = nodeText.toLowerCase().includes('x');
           const rangeKey = `${from}-${to}`;
           if (!decoratedRanges.has(rangeKey)) {
@@ -737,6 +734,13 @@ export const livePreviewPlugin = ViewPlugin.fromClass(
 
         case 'HorizontalRule':
           // Replace horizontal rule markdown with styled hr element
+          const hrText = view.state.doc.sliceString(from, to);
+
+          // Skip if horizontal rule contains newlines (can't use Decoration.replace on multi-line content)
+          if (hrText.includes('\n')) {
+            break;
+          }
+
           const hrKey = `${from}-${to}`;
           if (!decoratedRanges.has(hrKey)) {
             decorations.push(
@@ -860,10 +864,15 @@ export const livePreviewPlugin = ViewPlugin.fromClass(
         }
 
         if (!decoratedRanges.has(hideKey)) {
-          // Completely replace the code block content to collapse the lines
-          // This removes the vertical space that the hidden lines would otherwise take up
+          // Hide the code block content using CSS instead of replacing
+          // (Decoration.replace() doesn't work with multi-line content)
           decorations.push(
-            Decoration.replace({}).range(codeStart, codeEnd)
+            Decoration.mark({
+              class: 'cm-mermaid-hidden',
+              attributes: {
+                style: 'display: none;'
+              }
+            }).range(codeStart, codeEnd)
           );
           decoratedRanges.add(hideKey);
         }
@@ -878,6 +887,11 @@ export const livePreviewPlugin = ViewPlugin.fromClass(
 
       // Get the full link text
       const fullLinkText = view.state.doc.sliceString(linkStart, linkEnd);
+
+      // Skip if link contains newlines (can't use Decoration.replace on multi-line content)
+      if (fullLinkText.includes('\n')) {
+        return;
+      }
 
       // Parse link structure [text](url) manually
       const linkMatch = fullLinkText.match(/^\[([^\]]*)\]\(([^)]*)\)$/);
@@ -904,12 +918,21 @@ export const livePreviewPlugin = ViewPlugin.fromClass(
     /**
      * Handle image syntax ![alt](url)
      * Renders images inline in live preview
+     * Obsidian-style: When cursor is inside, show markdown above + rendered image below
      */
     handleImage(imageNode: SyntaxNode, view: EditorView, decorations: Range<Decoration>[], decoratedRanges: Set<string>): void {
       let altText = '';
       let imageUrl = '';
       let imageStart = imageNode.from;
       let imageEnd = imageNode.to;
+
+      // Get the full image text to check for newlines
+      const fullImageText = view.state.doc.sliceString(imageStart, imageEnd);
+
+      // Skip if image contains newlines (can't use Decoration.replace on multi-line content)
+      if (fullImageText.includes('\n')) {
+        return;
+      }
 
       // Parse image structure ![alt](url)
       imageNode.node.cursor().iterate((node) => {
@@ -926,8 +949,26 @@ export const livePreviewPlugin = ViewPlugin.fromClass(
         }
       });
 
-      // Replace entire image markdown with widget
-      if (imageUrl) {
+      if (!imageUrl) return;
+
+      const cursorPos = view.state.selection.main.head;
+      const cursorInImage = cursorPos >= imageStart && cursorPos <= imageEnd;
+
+      if (cursorInImage) {
+        // Cursor is inside image - show markdown syntax AND rendered image
+        // Add widget after the markdown text (not replacing it)
+        const rangeKey = `${imageStart}-${imageEnd}-widget`;
+        if (!decoratedRanges.has(rangeKey)) {
+          decorations.push(
+            Decoration.widget({
+              widget: new ImageWidget(imageUrl, altText || 'Image'),
+              side: 1  // Place after the image markdown
+            }).range(imageEnd)
+          );
+          decoratedRanges.add(rangeKey);
+        }
+      } else {
+        // Cursor is outside - replace entire image markdown with widget (hide markdown)
         const rangeKey = `${imageStart}-${imageEnd}`;
         if (!decoratedRanges.has(rangeKey)) {
           decorations.push(
@@ -957,11 +998,19 @@ export const livePreviewPlugin = ViewPlugin.fromClass(
       const blockquoteText = view.state.doc.sliceString(from, to);
 
       // Check for GitHub alert syntax: [!NOTE], [!TIP], [!IMPORTANT], [!WARNING], [!CAUTION]
+      // Match at start of blockquote text, accounting for multi-line blockquotes
       const alertMatch = blockquoteText.match(/^\s*>\s*\[!(NOTE|TIP|IMPORTANT|WARNING|CAUTION)\]/i);
 
       if (alertMatch) {
         const alertType = alertMatch[1].toLowerCase() as 'note' | 'tip' | 'important' | 'warning' | 'caution';
-        const alertColors = theme.alert[alertType];
+
+        // Safely access alert colors with fallback
+        const alertColors = theme.alert?.[alertType];
+
+        if (!alertColors) {
+          console.warn(`[livePreviewMode] Alert colors not found for type: ${alertType}`);
+          return;
+        }
 
         // Apply GitHub alert styling
         addDecoration(

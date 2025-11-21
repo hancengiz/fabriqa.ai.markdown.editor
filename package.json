@@ -22,7 +22,9 @@
     "checkbox",
     "task list",
     "mermaid",
-    "diagrams"
+    "diagrams",
+    "table",
+    "table editor"
   ],
   "repository": {
     "type": "git",

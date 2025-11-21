@@ -29,6 +29,7 @@ Create beautiful diagrams using Mermaid syntax. In Live Preview mode, diagrams a
 
 - 📝 **Three Editing Modes**: Switch seamlessly between Live Preview, Source, and Reading modes
 - 📊 **Mermaid Diagrams**: Full support for all Mermaid diagram types with live rendering and "View Code" toggle
+- 📋 **Advanced Table Editing**: Create, edit, and navigate markdown tables with intuitive keyboard shortcuts
 - 🎯 **Config-Driven Sidebar**: Organize markdown files by sections using `.vscode/fabriqa-markdown-editor-config.json`
 - 🔍 **Integrated Search**: Native VS Code find (Cmd+F) with smart content reveal in diagrams and hidden elements
 - ✅ **Interactive Checkboxes**: Click to toggle task list items directly in Live Preview mode
@@ -90,6 +91,38 @@ Configure the extension in VS Code settings (`Cmd/Ctrl + ,`):
 - `fabriqa.fontSize`: Font size for the editor (default: 14)
 - `fabriqa.lineHeight`: Line height multiplier (default: 1.6)
 - `fabriqa.sidebarSections`: Configure sidebar sections with glob patterns
+
+## Table Editing
+
+The fabriqa Markdown Editor provides comprehensive table editing support with intuitive keyboard shortcuts:
+
+### Creating Tables
+- Press `Cmd+Shift+T` / `Ctrl+Shift+T` to insert a new 3x3 table at the cursor position
+- Tables are automatically formatted with proper markdown syntax
+
+### Navigating Tables
+- **Tab**: Move to the next cell (automatically adds a new row when at the end of the table)
+- **Shift+Tab**: Move to the previous cell
+- Navigation is smart and wraps around rows appropriately
+
+### Adding Rows and Columns
+- `Cmd+Shift+↑` / `Ctrl+Shift+↑` - Insert row above current row
+- `Cmd+Shift+↓` / `Ctrl+Shift+↓` - Insert row below current row
+- `Cmd+Shift+←` / `Ctrl+Shift+←` - Insert column to the left
+- `Cmd+Shift+→` / `Ctrl+Shift+→` - Insert column to the right
+
+### Deleting Rows and Columns
+- `Cmd+Shift+Backspace` / `Ctrl+Shift+Backspace` - Delete current row
+- `Cmd+Shift+Delete` / `Ctrl+Shift+Delete` - Delete current column
+
+### Formatting Tables
+- `Cmd+Alt+F` / `Ctrl+Alt+F` - Format table (aligns all columns for better readability)
+
+### Table Editing Features
+- Automatically preserves column alignment settings (left, center, right)
+- Smart detection of table boundaries
+- Protects header and separator rows from deletion
+- Prevents deletion of the last column or row (maintains table structure)
 
 ## Search & Find
 
@@ -153,6 +186,18 @@ Search intelligently reveals hidden content:
 - `Cmd+Option+7` / `Ctrl+Alt+7` - Numbered list
 - `Cmd+Option+Q` / `Ctrl+Alt+Q` - Blockquote
 - `Cmd+Option+T` / `Ctrl+Alt+T` - Toggle checkbox
+
+### Table Editing
+- `Cmd+Shift+T` / `Ctrl+Shift+T` - Insert new table (3x3)
+- `Tab` - Navigate to next cell (auto-creates row at end)
+- `Shift+Tab` - Navigate to previous cell
+- `Cmd+Shift+↑` / `Ctrl+Shift+↑` - Insert row above
+- `Cmd+Shift+↓` / `Ctrl+Shift+↓` - Insert row below
+- `Cmd+Shift+←` / `Ctrl+Shift+←` - Insert column left
+- `Cmd+Shift+→` / `Ctrl+Shift+→` - Insert column right
+- `Cmd+Shift+Backspace` / `Ctrl+Shift+Backspace` - Delete row
+- `Cmd+Shift+Delete` / `Ctrl+Shift+Delete` - Delete column
+- `Cmd+Option+F` / `Ctrl+Alt+F` - Format table
 
 ### Code Editing (CodeMirror Standard Shortcuts)
 - `Option+Up` / `Alt+Up` - Move line up

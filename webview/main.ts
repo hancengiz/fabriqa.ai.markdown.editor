@@ -25,7 +25,17 @@ import {
   toggleBulletList,
   toggleNumberedList,
   toggleBlockquote,
-  toggleCheckbox
+  toggleCheckbox,
+  insertTable,
+  navigateTableCellNext,
+  navigateTableCellPrevious,
+  insertTableRowAbove,
+  insertTableRowBelow,
+  deleteTableRow,
+  insertTableColumnLeft,
+  insertTableColumnRight,
+  deleteTableColumn,
+  formatTable
 } from './editors/markdownCommands';
 
 // Basic setup extensions (equivalent to basicSetup)
@@ -84,6 +94,30 @@ const basicExtensions = [
     { key: 'Mod-Alt-7', run: toggleNumberedList },
     { key: 'Mod-Alt-q', run: toggleBlockquote },
     { key: 'Mod-Alt-t', run: toggleCheckbox },
+    // Table shortcuts (using Mod+Shift for table operations to avoid conflicts)
+    { key: 'Mod-Shift-t', run: (view) => insertTable(view, 3, 3) }, // Insert 3x3 table
+    // Tab navigation only activates inside tables, otherwise returns false for normal Tab behavior
+    {
+      key: 'Tab',
+      run: (view) => {
+        const result = navigateTableCellNext(view);
+        return result; // Returns false if not in table, allowing normal Tab behavior
+      }
+    },
+    {
+      key: 'Shift-Tab',
+      run: (view) => {
+        const result = navigateTableCellPrevious(view);
+        return result; // Returns false if not in table, allowing normal Shift-Tab behavior
+      }
+    },
+    { key: 'Mod-Shift-ArrowUp', run: insertTableRowAbove },
+    { key: 'Mod-Shift-ArrowDown', run: insertTableRowBelow },
+    { key: 'Mod-Shift-ArrowLeft', run: insertTableColumnLeft },
+    { key: 'Mod-Shift-ArrowRight', run: insertTableColumnRight },
+    { key: 'Mod-Shift-Backspace', run: deleteTableRow },
+    { key: 'Mod-Shift-Delete', run: deleteTableColumn },
+    { key: 'Mod-Alt-f', run: formatTable }, // Format table
     // Default keymaps
     ...closeBracketsKeymap,
     ...defaultKeymap,

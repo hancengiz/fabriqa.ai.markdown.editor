@@ -1,7 +1,8 @@
 const fs = require('fs');
 const path = require('path');
 
-const testMdsDir = path.join(__dirname, 'test_mds');
+// Path to sample markdown showcase files
+const testMdsDir = path.join(__dirname, '..', 'specs', 'sample-markdowns-showcase');
 const files = fs.readdirSync(testMdsDir).filter(f => f.endsWith('.md'));
 
 const testData = {};
