@@ -648,6 +648,7 @@ export const livePreviewPlugin = ViewPlugin.fromClass(
      * Obsidian-style behavior: shows raw code when cursor is inside the block
      */
     handleMermaidDiagram(fencedCodeNode: SyntaxNode, view: EditorView, decorations: Range<Decoration>[], decoratedRanges: Set<string>): void {
+      const theme = getCurrentTheme();
       let isMermaid = false;
       let mermaidCode = '';
       let codeStart = fencedCodeNode.from;
@@ -662,6 +663,27 @@ export const livePreviewPlugin = ViewPlugin.fromClass(
           mermaidCode = view.state.doc.sliceString(node.from, node.to);
         }
       });
+
+      // If this is NOT a mermaid code block, add background styling
+      if (!isMermaid) {
+        const rangeKey = `code-block-${codeStart}`;
+        if (!decoratedRanges.has(rangeKey)) {
+          decorations.push(
+            Decoration.mark({
+              class: 'cm-code-block',
+              attributes: {
+                style: `
+                  background-color: ${theme.code.background};
+                  padding: 4px 0;
+                  display: block;
+                `
+              }
+            }).range(codeStart, codeEnd)
+          );
+          decoratedRanges.add(rangeKey);
+        }
+        return;
+      }
 
       // If this is a mermaid code block, check cursor position and selection
       if (isMermaid && mermaidCode) {
