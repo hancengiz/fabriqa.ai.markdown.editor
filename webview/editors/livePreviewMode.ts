@@ -168,6 +168,31 @@ class EmojiWidget extends WidgetType {
 }
 
 /**
+ * Widget for GitHub alert icons in Live Preview
+ * Renders icon at the start of alert blocks
+ */
+class AlertIconWidget extends WidgetType {
+  constructor(readonly icon: string) {
+    super();
+  }
+
+  toDOM() {
+    const span = document.createElement('span');
+    span.textContent = this.icon + ' ';
+    span.className = 'cm-alert-icon';
+    span.style.cssText = `
+      font-family: "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol";
+      margin-right: 4px;
+    `;
+    return span;
+  }
+
+  ignoreEvent() {
+    return false;
+  }
+}
+
+/**
  * Widget for clickable checkboxes in Live Preview
  * Renders an actual HTML checkbox that can be clicked to toggle state
  */
@@ -1061,6 +1086,7 @@ export const livePreviewPlugin = ViewPlugin.fromClass(
     /**
      * Handle blockquotes and GitHub alerts
      * Detects GitHub alert syntax: > [!NOTE], > [!TIP], etc.
+     * Obsidian-style: Shows plain markdown when cursor is inside
      */
     handleBlockquoteOrAlert(
       blockquoteNode: SyntaxNode,
@@ -1073,12 +1099,16 @@ export const livePreviewPlugin = ViewPlugin.fromClass(
       const from = blockquoteNode.from;
       const to = blockquoteNode.to;
       const blockquoteText = view.state.doc.sliceString(from, to);
+      const cursorPos = view.state.selection.main.head;
+
+      // Check if cursor is inside this blockquote
+      const cursorInside = cursorPos >= from && cursorPos <= to;
 
       // Check for GitHub alert syntax: [!NOTE], [!TIP], [!IMPORTANT], [!WARNING], [!CAUTION]
       // Match at start of blockquote text, accounting for multi-line blockquotes
       const alertMatch = blockquoteText.match(/^\s*>\s*\[!(NOTE|TIP|IMPORTANT|WARNING|CAUTION)\]/i);
 
-      if (alertMatch) {
+      if (alertMatch && !cursorInside) {
         const alertType = alertMatch[1].toLowerCase() as 'note' | 'tip' | 'important' | 'warning' | 'caution';
 
         // Safely access alert colors with fallback
@@ -1088,6 +1118,15 @@ export const livePreviewPlugin = ViewPlugin.fromClass(
           console.warn(`[livePreviewMode] Alert colors not found for type: ${alertType}`);
           return;
         }
+
+        // Icon mapping for each alert type
+        const alertIcons: Record<string, string> = {
+          'note': 'ℹ️',
+          'tip': '💡',
+          'important': '❗',
+          'warning': '⚠️',
+          'caution': '⚠️'
+        };
 
         // Apply GitHub alert styling
         addDecoration(
@@ -1102,14 +1141,27 @@ export const livePreviewPlugin = ViewPlugin.fromClass(
                 border-radius: 4px;
                 margin: 8px 0;
                 display: block;
+                position: relative;
               `
             }
           }),
           from,
           to
         );
-      } else {
-        // Regular blockquote styling
+
+        // Add icon widget at the start of the alert
+        const iconKey = `alert-icon-${from}`;
+        if (!decoratedRanges.has(iconKey)) {
+          decorations.push(
+            Decoration.widget({
+              widget: new AlertIconWidget(alertIcons[alertType]),
+              side: 1  // Place after the > character
+            }).range(from)
+          );
+          decoratedRanges.add(iconKey);
+        }
+      } else if (!cursorInside) {
+        // Regular blockquote styling (only if cursor is outside)
         addDecoration(
           Decoration.mark({
             class: 'cm-blockquote',
@@ -1127,6 +1179,7 @@ export const livePreviewPlugin = ViewPlugin.fromClass(
           to
         );
       }
+      // If cursor is inside, don't apply any styling - show plain markdown
     }
   },
   {

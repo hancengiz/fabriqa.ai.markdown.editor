@@ -1326,6 +1326,9 @@ export const readingModePlugin = ViewPlugin.fromClass(
         // Update content
         this.htmlContainer.innerHTML = cleanHtml;
 
+        // Add icons to GitHub alerts
+        this.addGitHubAlertIcons();
+
         // Make checkboxes interactive
         this.setupCheckboxHandlers(view);
 
@@ -1344,6 +1347,59 @@ export const readingModePlugin = ViewPlugin.fromClass(
           `;
         }
       }
+    }
+
+    /**
+     * Add icons to GitHub alert titles
+     * Adds appropriate emoji icons to [!NOTE], [!TIP], [!WARNING], [!IMPORTANT], [!CAUTION]
+     */
+    addGitHubAlertIcons() {
+      if (!this.htmlContainer) return;
+
+      // Icon mapping for each alert type
+      const alertIcons: Record<string, string> = {
+        'note': 'ℹ️',
+        'tip': '💡',
+        'important': '❗',
+        'warning': '⚠️',
+        'caution': '⚠️'
+      };
+
+      // Find all alert elements
+      const alerts = this.htmlContainer.querySelectorAll('.markdown-alert');
+
+      alerts.forEach((alert) => {
+        // Determine alert type from class name
+        let alertType: string | null = null;
+        for (const className of Array.from(alert.classList)) {
+          if (className.startsWith('markdown-alert-')) {
+            alertType = className.replace('markdown-alert-', '');
+            break;
+          }
+        }
+
+        if (!alertType || !alertIcons[alertType]) return;
+
+        // Find the title element
+        const title = alert.querySelector('.markdown-alert-title');
+        if (!title) return;
+
+        // Check if icon already exists (to avoid duplicates)
+        const existingIcon = title.querySelector('.alert-icon');
+        if (existingIcon) return;
+
+        // Create icon span
+        const icon = document.createElement('span');
+        icon.className = 'alert-icon';
+        icon.textContent = alertIcons[alertType];
+        icon.style.cssText = `
+          margin-right: 8px;
+          font-family: "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol";
+        `;
+
+        // Insert icon at the beginning of the title
+        title.insertBefore(icon, title.firstChild);
+      });
     }
 
     /**
