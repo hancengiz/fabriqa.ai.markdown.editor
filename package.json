@@ -262,8 +262,7 @@
         {
           "command": "fabriqa.openMarkdownEditor",
           "when": "resourceExtname == .md",
-          "group": "navigation@10",
-          "icon": "resources/fabriqa-toolbar-icon.svg"
+          "group": "navigation@1"
         }
       ]
     },
