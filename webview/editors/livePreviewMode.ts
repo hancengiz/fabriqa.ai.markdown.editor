@@ -193,6 +193,43 @@ class AlertIconWidget extends WidgetType {
 }
 
 /**
+ * Widget for GitHub alert title in Live Preview
+ * Renders icon and title like "ℹ️ Note", "💡 Tip", etc.
+ */
+class AlertTitleWidget extends WidgetType {
+  constructor(readonly icon: string, readonly title: string) {
+    super();
+  }
+
+  toDOM() {
+    const wrapper = document.createElement('div');
+    wrapper.className = 'cm-alert-title';
+    wrapper.style.cssText = `
+      font-weight: 600;
+      margin-bottom: 8px;
+    `;
+
+    const icon = document.createElement('span');
+    icon.textContent = this.icon + ' ';
+    icon.style.cssText = `
+      font-family: "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol";
+      margin-right: 4px;
+    `;
+
+    const title = document.createElement('span');
+    title.textContent = this.title;
+
+    wrapper.appendChild(icon);
+    wrapper.appendChild(title);
+    return wrapper;
+  }
+
+  ignoreEvent() {
+    return false;
+  }
+}
+
+/**
  * Widget for clickable checkboxes in Live Preview
  * Renders an actual HTML checkbox that can be clicked to toggle state
  */
@@ -341,6 +378,7 @@ class CheckboxWidget extends WidgetType {
 export const livePreviewPlugin = ViewPlugin.fromClass(
   class {
     decorations: DecorationSet;
+    private alertRanges: Map<number, number> = new Map(); // Track alert blockquote ranges
 
     constructor(view: EditorView) {
       this.decorations = this.buildDecorations(view);
@@ -358,6 +396,9 @@ export const livePreviewPlugin = ViewPlugin.fromClass(
 
       // Track which ranges we've already decorated to avoid duplicates
       const decoratedRanges = new Set<string>();
+
+      // Clear and rebuild alert ranges
+      this.alertRanges.clear();
 
       // Find the active markdown structure containing the cursor
       // This could be a specific inline element like one bold section: **text**
@@ -1128,6 +1169,15 @@ export const livePreviewPlugin = ViewPlugin.fromClass(
           'caution': '⚠️'
         };
 
+        // Title mapping for each alert type
+        const alertTitles: Record<string, string> = {
+          'note': 'Note',
+          'tip': 'Tip',
+          'important': 'Important',
+          'warning': 'Warning',
+          'caution': 'Caution'
+        };
+
         // Apply GitHub alert styling
         addDecoration(
           Decoration.mark({
@@ -1149,8 +1199,27 @@ export const livePreviewPlugin = ViewPlugin.fromClass(
           to
         );
 
-        // Find and replace [!TYPE] with icon widget
-        // The match gives us the full matched string including > and whitespace
+        // Hide ALL quote markers (>) in the alert block
+        // Split by lines and find each > character
+        const lines = blockquoteText.split('\n');
+        let currentPos = from;
+
+        for (const line of lines) {
+          const quoteMatch = line.match(/^(\s*)(>)(\s*)/);
+          if (quoteMatch) {
+            const quoteStart = currentPos + quoteMatch[1].length;
+            const quoteEnd = quoteStart + 1; // Just the '>' character
+
+            const quoteKey = `quote-mark-${quoteStart}`;
+            if (!decoratedRanges.has(quoteKey)) {
+              decorations.push(hiddenDecoration.range(quoteStart, quoteEnd));
+              decoratedRanges.add(quoteKey);
+            }
+          }
+          currentPos += line.length + 1; // +1 for the newline character
+        }
+
+        // Find and replace [!TYPE] with title widget showing icon + title text
         const alertTagPattern = `[!${alertType.toUpperCase()}]`;
         const alertTagIndex = blockquoteText.indexOf(alertTagPattern);
 
@@ -1158,15 +1227,15 @@ export const livePreviewPlugin = ViewPlugin.fromClass(
           const alertTagStart = from + alertTagIndex;
           const alertTagEnd = alertTagStart + alertTagPattern.length;
 
-          const iconKey = `alert-icon-${alertTagStart}`;
-          if (!decoratedRanges.has(iconKey)) {
-            // Replace the [!TYPE] text with the icon widget
+          const titleKey = `alert-title-${alertTagStart}`;
+          if (!decoratedRanges.has(titleKey)) {
+            // Replace the [!TYPE] text with the title widget (icon + title)
             decorations.push(
               Decoration.replace({
-                widget: new AlertIconWidget(alertIcons[alertType])
+                widget: new AlertTitleWidget(alertIcons[alertType], alertTitles[alertType])
               }).range(alertTagStart, alertTagEnd)
             );
-            decoratedRanges.add(iconKey);
+            decoratedRanges.add(titleKey);
           }
         }
       } else if (!cursorInside) {
