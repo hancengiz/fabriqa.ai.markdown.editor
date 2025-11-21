@@ -4,7 +4,7 @@
   "description": "Obsidian-like markdown editor with Live Preview, Source, and Reading modes",
   "version": "0.16.2",
   "publisher": "fabriqaai",
-  "icon": "resources/icon-simple.svg",
+  "icon": "resources/icon.png",
   "engines": {
     "vscode": "^1.85.0"
   },
