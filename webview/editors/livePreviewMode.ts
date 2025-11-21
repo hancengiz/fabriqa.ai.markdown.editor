@@ -119,7 +119,7 @@ class CheckboxWidget extends WidgetType {
       checkmark.setAttribute('viewBox', '0 0 12 12');
       checkmark.style.cssText = `
         position: absolute;
-        top: 2px;
+        top: 3px;
         left: 2px;
         pointer-events: none;
         z-index: 10;
