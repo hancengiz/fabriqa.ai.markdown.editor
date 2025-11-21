@@ -85,6 +85,8 @@ class CheckboxWidget extends WidgetType {
       vertical-align: middle;
       margin-right: 6px;
       position: relative;
+      width: 16px;
+      height: 16px;
     `;
 
     const checkbox = document.createElement('input');
@@ -103,8 +105,9 @@ class CheckboxWidget extends WidgetType {
       background: ${theme.checkbox.background};
       cursor: pointer;
       pointer-events: auto;
-      vertical-align: middle;
-      position: relative;
+      position: absolute;
+      top: 0;
+      left: 0;
     `;
 
     // Add checked state styling
