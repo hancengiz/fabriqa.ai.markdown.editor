@@ -197,7 +197,7 @@ class AlertIconWidget extends WidgetType {
  * Renders icon and title like "ℹ️ Note", "💡 Tip", etc.
  */
 class AlertTitleWidget extends WidgetType {
-  constructor(readonly icon: string, readonly title: string) {
+  constructor(readonly icon: string, readonly title: string, readonly color: string) {
     super();
   }
 
@@ -207,6 +207,7 @@ class AlertTitleWidget extends WidgetType {
     wrapper.style.cssText = `
       font-weight: 600;
       margin-bottom: 8px;
+      color: ${this.color};
     `;
 
     const icon = document.createElement('span');
@@ -1178,17 +1179,15 @@ export const livePreviewPlugin = ViewPlugin.fromClass(
           'caution': 'Caution'
         };
 
-        // Apply GitHub alert styling
+        // Apply GitHub alert styling (no background, only colored border like GitHub)
         addDecoration(
           Decoration.mark({
             class: `cm-alert cm-alert-${alertType}`,
             attributes: {
               style: `
-                background-color: ${alertColors.background};
                 border-left: 4px solid ${alertColors.border};
                 padding: 8px 12px;
                 padding-left: 1em;
-                border-radius: 4px;
                 margin: 8px 0;
                 display: block;
                 position: relative;
@@ -1229,10 +1228,10 @@ export const livePreviewPlugin = ViewPlugin.fromClass(
 
           const titleKey = `alert-title-${alertTagStart}`;
           if (!decoratedRanges.has(titleKey)) {
-            // Replace the [!TYPE] text with the title widget (icon + title)
+            // Replace the [!TYPE] text with the title widget (icon + title + color)
             decorations.push(
               Decoration.replace({
-                widget: new AlertTitleWidget(alertIcons[alertType], alertTitles[alertType])
+                widget: new AlertTitleWidget(alertIcons[alertType], alertTitles[alertType], alertColors.border)
               }).range(alertTagStart, alertTagEnd)
             );
             decoratedRanges.add(titleKey);
