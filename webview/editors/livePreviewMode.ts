@@ -361,7 +361,7 @@ export const livePreviewPlugin = ViewPlugin.fromClass(
       this.addCustomCheckboxDecorations(view, decorations, activeStructure, cursorPos);
 
       // Add emoji shortcode decorations
-      this.addEmojiDecorations(view, decorations, decoratedRanges);
+      this.addEmojiDecorations(view, decorations, decoratedRanges, cursorPos);
 
       return Decoration.set(decorations, true);
     }
@@ -427,11 +427,13 @@ export const livePreviewPlugin = ViewPlugin.fromClass(
     /**
      * Add emoji shortcode decorations
      * Replaces :emoji_name: with actual emoji characters
+     * Obsidian-style: Shows raw markdown when cursor is inside the emoji
      */
     addEmojiDecorations(
       view: EditorView,
       decorations: Range<Decoration>[],
-      decoratedRanges: Set<string>
+      decoratedRanges: Set<string>,
+      cursorPos: number
     ): void {
       const doc = view.state.doc;
       const text = doc.toString();
@@ -449,6 +451,14 @@ export const livePreviewPlugin = ViewPlugin.fromClass(
         if (emoji) {
           const from = match.index;
           const to = match.index + match[0].length;
+
+          // Obsidian-style behavior: if cursor is inside the emoji shortcode,
+          // show the raw markdown instead of the emoji widget
+          if (cursorPos > from && cursorPos < to) {
+            // Cursor is inside - skip the widget, show raw markdown
+            continue;
+          }
+
           const rangeKey = `emoji-${from}-${to}`;
 
           if (!decoratedRanges.has(rangeKey)) {
