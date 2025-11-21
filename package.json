@@ -78,7 +78,10 @@
         "command": "fabriqa.openMarkdownEditor",
         "title": "Open with fabriqa.ai markdown editor",
         "category": "fabriqa",
-        "icon": "resources/fabriqa-toolbar-icon.svg"
+        "icon": {
+          "light": "resources/fabriqa-toolbar-icon.svg",
+          "dark": "resources/fabriqa-toolbar-icon.svg"
+        }
       },
       {
         "command": "fabriqa.switchToLivePreview",
