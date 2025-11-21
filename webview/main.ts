@@ -379,16 +379,13 @@ function getThemeExtensions(): any[] {
         textDecoration: 'none !important',
         borderBottom: 'none !important'
       },
-      // Override CodeMirror's syntax highlighting for headings (those ͼ classes)
-      '.cm-line span': {
-        textDecoration: 'inherit !important'
-      },
-      // Specifically target heading content spans
-      '.ͼ6': {
+      // Target CodeMirror's minified heading classes (like ͼr which adds underlines)
+      '[class*="ͼr"]': {
         textDecoration: 'none !important',
         borderBottom: 'none !important'
       },
-      '.ͼ4': {
+      // Specifically target heading content spans (CodeMirror minified classes)
+      '.ͼ6, .ͼ4, .ͼr': {
         textDecoration: 'none !important',
         borderBottom: 'none !important'
       }
