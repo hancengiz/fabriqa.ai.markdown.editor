@@ -432,6 +432,7 @@ export const livePreviewPlugin = ViewPlugin.fromClass(
             'ATXHeading4', 'ATXHeading5', 'ATXHeading6',
             'Blockquote',
             'ListItem',
+            'HorizontalRule',
 
             // Inline structures
             'Emphasis',
@@ -668,7 +669,7 @@ export const livePreviewPlugin = ViewPlugin.fromClass(
             Decoration.mark({
               class: 'cm-strikethrough',
               attributes: {
-                style: 'text-decoration: line-through;'
+                style: 'text-decoration: line-through !important;'
               }
             }),
             from,
