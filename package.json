@@ -76,9 +76,9 @@
     "commands": [
       {
         "command": "fabriqa.openMarkdownEditor",
-        "title": "𝗙 Open with fabriqa.ai markdown editor",
+        "title": "Open with fabriqa.ai markdown editor",
         "category": "fabriqa",
-        "icon": "$(markdown)"
+        "icon": "resources/fabriqa-toolbar-icon.svg"
       },
       {
         "command": "fabriqa.switchToLivePreview",
@@ -262,7 +262,8 @@
         {
           "command": "fabriqa.openMarkdownEditor",
           "when": "resourceExtname == .md",
-          "group": "navigation@1"
+          "group": "navigation@1",
+          "icon": "resources/fabriqa-toolbar-icon.svg"
         }
       ]
     },
