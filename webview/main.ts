@@ -336,8 +336,12 @@ function getThemeExtensions(): any[] {
       '.cm-line:has(.cm-codeMark)': {
         backgroundColor: theme.code.background
       },
-      // Remove underlines from all headings
+      // Remove underlines from all headings and their children
       '.cm-heading-1, .cm-heading-2, .cm-heading-3, .cm-heading-4, .cm-heading-5, .cm-heading-6': {
+        textDecoration: 'none !important',
+        borderBottom: 'none !important'
+      },
+      '.cm-heading-1 *, .cm-heading-2 *, .cm-heading-3 *, .cm-heading-4 *, .cm-heading-5 *, .cm-heading-6 *': {
         textDecoration: 'none !important',
         borderBottom: 'none !important'
       }
