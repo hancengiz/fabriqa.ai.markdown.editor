@@ -860,20 +860,10 @@ export const livePreviewPlugin = ViewPlugin.fromClass(
         }
 
         if (!decoratedRanges.has(hideKey)) {
-          // Hide the entire code block content with a mark decoration
+          // Completely replace the code block content to collapse the lines
+          // This removes the vertical space that the hidden lines would otherwise take up
           decorations.push(
-            Decoration.mark({
-              class: 'cm-mermaid-hidden',
-              attributes: {
-                style: `
-                  display: none;
-                  height: 0;
-                  overflow: hidden;
-                  position: absolute;
-                  visibility: hidden;
-                `
-              }
-            }).range(codeStart, codeEnd)
+            Decoration.replace({}).range(codeStart, codeEnd)
           );
           decoratedRanges.add(hideKey);
         }
