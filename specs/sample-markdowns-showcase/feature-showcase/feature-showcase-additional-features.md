@@ -1,6 +1,6 @@
 # Additional Features
 
-This demonstrates additional features and capabilities of fabriqa.ai Markdown Editor.
+This demonstrates additional features and capabilities of fabriqa.ai markdown editor.
 
 ---
 
@@ -178,4 +178,4 @@ Features planned for future releases:
 
 ---
 
-*Part of fabriqa.ai Markdown Editor Feature Showcase*
+*Part of fabriqa.ai markdown editor Feature Showcase*

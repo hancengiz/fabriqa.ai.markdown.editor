@@ -1,6 +1,6 @@
 # Publishing to VS Code Marketplace
 
-This guide walks you through publishing the fabriqa.ai Markdown Editor extension to the Visual Studio Code Marketplace.
+This guide walks you through publishing the fabriqa.ai markdown editor extension to the Visual Studio Code Marketplace.
 
 ## Prerequisites
 

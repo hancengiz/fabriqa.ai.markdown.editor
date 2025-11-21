@@ -136,7 +136,7 @@ Add these fields to `package.json`:
 {
   "publisher": "fabriqa",
   "name": "fabriqa.ai-markdown-editor",
-  "displayName": "fabriqa.ai Markdown Editor",
+  "displayName": "fabriqa.ai markdown editor",
   "version": "0.1.0",
   "icon": "resources/icon.png",
   "repository": {

@@ -2,7 +2,7 @@
 
 ## Architecture Overview
 
-The fabriqa.ai Markdown Editor is a VS Code extension with a two-part architecture:
+The fabriqa.ai markdown editor is a VS Code extension with a two-part architecture:
 
 ### 1. Extension Host (Node.js)
 Located in `src/`, runs in VS Code's Node.js process:

@@ -47,4 +47,4 @@ You can combine different formatting:
 
 ---
 
-*Part of fabriqa.ai Markdown Editor Feature Showcase*
+*Part of fabriqa.ai markdown editor Feature Showcase*

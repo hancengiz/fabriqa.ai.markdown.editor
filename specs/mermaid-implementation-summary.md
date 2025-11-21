@@ -279,7 +279,7 @@ All criteria met:
 
 ## Conclusion
 
-Mermaid diagram support is now fully integrated into the fabriqa.ai Markdown Editor with:
+Mermaid diagram support is now fully integrated into the fabriqa.ai markdown editor with:
 
 1. ✅ Full Reading Mode support
 2. ✅ Interactive Live Preview with toggle functionality

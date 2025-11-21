@@ -118,4 +118,4 @@ The editor supports:
 
 ---
 
-*Part of fabriqa.ai Markdown Editor Feature Showcase*
+*Part of fabriqa.ai markdown editor Feature Showcase*

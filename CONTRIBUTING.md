@@ -1,4 +1,4 @@
-# Contributing to fabriqa.ai Markdown Editor
+# Contributing to fabriqa.ai markdown editor
 
 Thank you for your interest in contributing! This document provides guidelines and instructions for contributing to the project.
 

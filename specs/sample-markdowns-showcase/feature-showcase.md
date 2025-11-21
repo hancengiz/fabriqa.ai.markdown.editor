@@ -1,4 +1,4 @@
-# fabriqa.ai Markdown Editor - Feature Showcase
+# fabriqa.ai markdown editor - Feature Showcase
 
 This document demonstrates all supported markdown features in the fabriqa.ai markdown editor.
 

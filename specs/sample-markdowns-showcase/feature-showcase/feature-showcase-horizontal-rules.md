@@ -68,4 +68,4 @@ All of these create the same visual horizontal rule.
 
 ---
 
-*Part of fabriqa.ai Markdown Editor Feature Showcase*
+*Part of fabriqa.ai markdown editor Feature Showcase*

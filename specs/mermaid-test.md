@@ -1,6 +1,6 @@
 # Mermaid Diagram Test
 
-This document tests various Mermaid diagram types in the fabriqa.ai Markdown Editor.
+This document tests various Mermaid diagram types in the fabriqa.ai markdown editor.
 
 ## Flowchart
 

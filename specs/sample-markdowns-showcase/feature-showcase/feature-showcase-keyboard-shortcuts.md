@@ -1,6 +1,6 @@
 # Keyboard Shortcuts
 
-This is a comprehensive guide to all keyboard shortcuts in fabriqa.ai Markdown Editor.
+This is a comprehensive guide to all keyboard shortcuts in fabriqa.ai markdown editor.
 
 ---
 
@@ -117,4 +117,4 @@ Replace `Cmd` with `Ctrl` on Windows and Linux:
 
 ---
 
-*Part of fabriqa.ai Markdown Editor Feature Showcase*
+*Part of fabriqa.ai markdown editor Feature Showcase*

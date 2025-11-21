@@ -1,4 +1,4 @@
-# fabriqa.ai Markdown Editor
+# fabriqa.ai markdown editor
 
 Official website: [https://fabriqa.ai](https://fabriqa.ai)
 

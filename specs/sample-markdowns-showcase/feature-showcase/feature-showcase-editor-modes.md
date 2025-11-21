@@ -1,6 +1,6 @@
 # Editor Modes
 
-This demonstrates the three editing modes available in fabriqa.ai Markdown Editor.
+This demonstrates the three editing modes available in fabriqa.ai markdown editor.
 
 ---
 
@@ -115,4 +115,4 @@ Switch between modes instantly:
 
 ---
 
-*Part of fabriqa.ai Markdown Editor Feature Showcase*
+*Part of fabriqa.ai markdown editor Feature Showcase*

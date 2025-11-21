@@ -1,6 +1,6 @@
-# fabriqa.ai Markdown Editor - Feature Showcase
+# fabriqa.ai markdown editor - Feature Showcase
 
-Welcome to the comprehensive feature showcase for the fabriqa.ai Markdown Editor! This collection demonstrates all supported markdown features and editor capabilities.
+Welcome to the comprehensive feature showcase for the fabriqa.ai markdown editor! This collection demonstrates all supported markdown features and editor capabilities.
 
 ---
 
@@ -44,7 +44,7 @@ Welcome to the comprehensive feature showcase for the fabriqa.ai Markdown Editor
 ## 🎯 Quick Start
 
 1. **Choose a feature** from the list above
-2. **Open the file** in fabriqa.ai Markdown Editor
+2. **Open the file** in fabriqa.ai markdown editor
 3. **Try it out** - edit, format, interact!
 4. **Experiment** with different modes:
    - `Cmd+Shift+P` - Live Preview
@@ -76,7 +76,7 @@ Welcome to the comprehensive feature showcase for the fabriqa.ai Markdown Editor
 
 ## 📖 About
 
-This feature showcase demonstrates the complete capabilities of the fabriqa.ai Markdown Editor, an Obsidian-like markdown editor for VS Code.
+This feature showcase demonstrates the complete capabilities of the fabriqa.ai markdown editor, an Obsidian-like markdown editor for VS Code.
 
 ### Features Highlighted
 - ✅ Live Preview with intelligent syntax hiding

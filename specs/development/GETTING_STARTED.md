@@ -1,6 +1,6 @@
 # Getting Started with Development
 
-This guide will help you set up and run the fabriqa.ai Markdown Editor extension for development.
+This guide will help you set up and run the fabriqa.ai markdown editor extension for development.
 
 ## Prerequisites
 
