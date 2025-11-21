@@ -1,81 +1,65 @@
 # GitHub Alerts
 
-This demonstrates GitHub-flavored markdown alerts (callouts).
+GitHub-style alerts help highlight important information.
 
----
-
-## Note
+## All Alert Types
 
 > [!NOTE]
 > Useful information that users should know, even when skimming content.
 
----
-
-## Tip
-
 > [!TIP]
 > Helpful advice for doing things better or more easily.
-
----
-
-## Important
 
 > [!IMPORTANT]
 > Key information users need to know to achieve their goal.
 
----
-
-## Warning
-
 > [!WARNING]
 > Urgent info that needs immediate user attention to avoid problems.
-
----
-
-## Caution
 
 > [!CAUTION]
 > Advises about risks or negative outcomes of certain actions.
 
----
-
-## Features
-
-- Color-coded borders and backgrounds
-- Distinct styling for each alert type
-- Supports all standard GitHub alert types
-- Can contain formatted text, lists, and code
-
----
-
-## Obsidian-Style Editing
-
-In **Live Preview** mode:
-- When cursor is **outside**: Beautifully styled alert with colors
-- When cursor is **inside**: Raw markdown with `> [!TYPE]` syntax visible
-- This allows easy editing while seeing the result
-
----
-
-## Syntax
-
-```markdown
-> [!NOTE]
-> Your note content here
+## Alert with List
 
 > [!TIP]
-> Your tip content here
+> Follow these steps:
+>
+> 1. Install the extension
+> 2. Open a markdown file
+> 3. Start editing!
+> 4. Enjoy the features
+
+## Alert with Code
+
+> [!NOTE]
+> To install dependencies, run:
+>
+> ```bash
+> npm install
+> ```
+
+## Multiple Paragraphs
 
 > [!IMPORTANT]
-> Your important message here
+> This alert contains multiple paragraphs.
+>
+> Each paragraph provides important context.
+>
+> Make sure to read all of them carefully.
+
+## Alert with Links
 
 > [!WARNING]
-> Your warning here
+> Before proceeding, read the [documentation](https://fabriqa.ai) carefully.
 
-> [!CAUTION]
-> Your caution message here
-```
+## Alert with Inline Code
 
----
+> [!TIP]
+> Use `Cmd+F` (Mac) or `Ctrl+F` (Windows) to search in the editor.
 
-*Part of fabriqa.ai markdown editor Feature Showcase*
+## Usage Guidelines
+
+- Use alerts sparingly - one or two per article maximum
+- Don't place alerts consecutively
+- Don't nest alerts within other elements
+- Choose the appropriate alert type for your message
