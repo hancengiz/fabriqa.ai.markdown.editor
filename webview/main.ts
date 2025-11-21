@@ -335,6 +335,11 @@ function getThemeExtensions(): any[] {
       // Code block background (for fenced code blocks in source mode)
       '.cm-line:has(.cm-codeMark)': {
         backgroundColor: theme.code.background
+      },
+      // Remove underlines from all headings
+      '.cm-heading-1, .cm-heading-2, .cm-heading-3, .cm-heading-4, .cm-heading-5, .cm-heading-6': {
+        textDecoration: 'none !important',
+        borderBottom: 'none !important'
       }
     })
   ];
