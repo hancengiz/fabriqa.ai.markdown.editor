@@ -947,6 +947,55 @@ function applyZoom(): void {
 }
 
 /**
+ * Context menu handlers for "Open in Browser" feature
+ */
+function setupContextMenu(): void {
+  const contextMenu = document.getElementById('context-menu');
+  if (!contextMenu) return;
+
+  // Show context menu on right-click
+  document.addEventListener('contextmenu', (e) => {
+    e.preventDefault();
+
+    // Position context menu at cursor
+    contextMenu.style.left = `${e.pageX}px`;
+    contextMenu.style.top = `${e.pageY}px`;
+    contextMenu.style.display = 'block';
+  });
+
+  // Hide context menu on click outside
+  document.addEventListener('click', () => {
+    contextMenu.style.display = 'none';
+  });
+
+  // Handle context menu item clicks
+  contextMenu.addEventListener('click', (e) => {
+    const target = e.target as HTMLElement;
+    if (target.classList.contains('context-menu-item')) {
+      const action = target.dataset.action;
+
+      if (action === 'openInBrowser') {
+        // Get current markdown content
+        const markdown = editorView?.state.doc.toString() || '';
+
+        // Send message to VS Code to open in browser
+        sendMessage({
+          type: 'openInBrowser',
+          markdown: markdown
+        });
+      }
+
+      contextMenu.style.display = 'none';
+    }
+  });
+}
+
+// Setup context menu after editor is initialized
+setTimeout(() => {
+  setupContextMenu();
+}, 100);
+
+/**
  * Listen for messages from VS Code
  */
 console.log('[Webview] Adding message listener');

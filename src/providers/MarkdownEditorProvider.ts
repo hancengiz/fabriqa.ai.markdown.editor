@@ -1,5 +1,8 @@
 import * as vscode from 'vscode';
 import * as path from 'path';
+import * as fs from 'fs';
+import * as os from 'os';
+import { marked } from 'marked';
 import { ConfigManager } from '../config/ConfigManager';
 import { Logger } from '../utils/Logger';
 import { WebviewLogger } from '../utils/WebviewLogger';
@@ -209,6 +212,11 @@ export class MarkdownEditorProvider implements vscode.CustomTextEditorProvider {
         await this.openLinkedFile(message.url, document);
         break;
 
+      case 'openInBrowser':
+        // Generate HTML and open in default browser
+        await this.openInBrowser(message.markdown, document);
+        break;
+
       default:
         Logger.warn(`Unknown message type from webview: ${message.type}`);
     }
@@ -244,6 +252,494 @@ export class MarkdownEditorProvider implements vscode.CustomTextEditorProvider {
       Logger.error(`Failed to open linked file: ${url}`, error);
       vscode.window.showErrorMessage(`Failed to open linked file: ${url}`);
     }
+  }
+
+  /**
+   * Open markdown content in default browser as HTML
+   */
+  private async openInBrowser(markdown: string, document: vscode.TextDocument): Promise<void> {
+    try {
+      Logger.info('Generating HTML for browser');
+
+      // Configure marked for GitHub Flavored Markdown
+      marked.setOptions({
+        gfm: true,
+        breaks: true
+      });
+
+      // Convert markdown to HTML
+      const htmlContent = await marked(markdown);
+
+      // Create complete HTML document with CrossNote styling
+      const fullHtml = this.generateFullHtml(htmlContent, document);
+
+      // Generate temp file path
+      const tempDir = os.tmpdir();
+      const fileName = `fabriqa-${path.basename(document.uri.fsPath, '.md')}-${Date.now()}.html`;
+      const tempFilePath = path.join(tempDir, fileName);
+
+      // Write HTML to temp file
+      fs.writeFileSync(tempFilePath, fullHtml, 'utf-8');
+      Logger.info(`HTML file created at: ${tempFilePath}`);
+
+      // Open with default browser
+      const fileUri = vscode.Uri.file(tempFilePath);
+      await vscode.env.openExternal(fileUri);
+
+      Logger.info('Opened HTML in browser');
+      vscode.window.showInformationMessage('Opened in browser');
+    } catch (error) {
+      Logger.error('Failed to open in browser', error);
+      vscode.window.showErrorMessage(`Failed to open in browser: ${error}`);
+    }
+  }
+
+  /**
+   * Generate complete HTML document with exact CrossNote (Markdown Preview Enhanced) styling
+   * Extracted from CrossNote HTML export for pixel-perfect matching
+   */
+  private generateFullHtml(bodyContent: string, document: vscode.TextDocument): string {
+    const title = path.basename(document.uri.fsPath, '.md');
+
+    return `<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>${title}</title>
+  <style>
+    /* Exact CrossNote / Markdown Preview Enhanced CSS */
+    html body {
+      font-family: 'Helvetica Neue', Helvetica, 'Segoe UI', Arial, freesans, sans-serif;
+      font-size: 16px;
+      line-height: 1.6;
+      color: #333;
+      background-color: #fff;
+      overflow: initial;
+      box-sizing: border-box;
+      word-wrap: break-word;
+    }
+
+    html body > :first-child {
+      margin-top: 0;
+    }
+
+    /* Headings */
+    html body h1, html body h2, html body h3, html body h4, html body h5, html body h6 {
+      line-height: 1.2;
+      margin-top: 1em;
+      margin-bottom: 16px;
+      color: #000;
+    }
+
+    html body h1 {
+      font-size: 2.25em;
+      font-weight: 300;
+      padding-bottom: .3em;
+    }
+
+    html body h2 {
+      font-size: 1.75em;
+      font-weight: 400;
+      padding-bottom: .3em;
+    }
+
+    html body h3 {
+      font-size: 1.5em;
+      font-weight: 500;
+    }
+
+    html body h4 {
+      font-size: 1.25em;
+      font-weight: 600;
+    }
+
+    html body h5 {
+      font-size: 1.1em;
+      font-weight: 600;
+    }
+
+    html body h6 {
+      font-size: 1em;
+      font-weight: 600;
+      color: #5c5c5c;
+    }
+
+    /* Override for h1-h5 to ensure weight 600 */
+    html body h1, html body h2, html body h3, html body h4, html body h5 {
+      font-weight: 600;
+    }
+
+    /* Re-apply specific weights for h1 and h2 */
+    html body h1 {
+      font-weight: 300;
+    }
+
+    html body h2 {
+      font-weight: 400;
+    }
+
+    html body h5 {
+      font-size: 1em;
+    }
+
+    /* Text styling */
+    html body strong {
+      color: #000;
+    }
+
+    html body del {
+      color: #5c5c5c;
+    }
+
+    html body a:not([href]) {
+      color: inherit;
+      text-decoration: none;
+    }
+
+    html body a {
+      color: #08c;
+      text-decoration: none;
+    }
+
+    html body a:hover {
+      color: #00a3f5;
+      text-decoration: none;
+    }
+
+    html body img {
+      max-width: 100%;
+    }
+
+    /* Paragraphs */
+    html body > p {
+      margin-top: 0;
+      margin-bottom: 16px;
+      word-wrap: break-word;
+    }
+
+    /* Lists */
+    html body > ul, html body > ol {
+      margin-bottom: 16px;
+    }
+
+    html body ul, html body ol {
+      padding-left: 2em;
+    }
+
+    html body ul.no-list, html body ol.no-list {
+      padding: 0;
+      list-style-type: none;
+    }
+
+    html body ul ul, html body ul ol, html body ol ol, html body ol ul {
+      margin-top: 0;
+      margin-bottom: 0;
+    }
+
+    html body li {
+      margin-bottom: 0;
+    }
+
+    html body li.task-list-item {
+      list-style: none;
+    }
+
+    html body li > p {
+      margin-top: 0;
+      margin-bottom: 0;
+    }
+
+    html body .task-list-item-checkbox {
+      margin: 0 .2em .25em -1.8em;
+      vertical-align: middle;
+    }
+
+    html body .task-list-item-checkbox:hover {
+      cursor: pointer;
+    }
+
+    /* Blockquotes */
+    html body blockquote {
+      margin: 16px 0;
+      font-size: inherit;
+      padding: 0 15px;
+      color: #5c5c5c;
+      background-color: #f0f0f0;
+      border-left: 4px solid #d6d6d6;
+    }
+
+    html body blockquote > :first-child {
+      margin-top: 0;
+    }
+
+    html body blockquote > :last-child {
+      margin-bottom: 0;
+    }
+
+    /* Horizontal rules */
+    html body hr {
+      height: 4px;
+      margin: 32px 0;
+      background-color: #d6d6d6;
+      border: 0 none;
+    }
+
+    /* Tables */
+    html body table {
+      margin: 10px 0 15px 0;
+      border-collapse: collapse;
+      border-spacing: 0;
+      display: block;
+      width: 100%;
+      overflow: auto;
+      word-break: normal;
+      word-break: keep-all;
+    }
+
+    html body table th {
+      font-weight: 700;
+      color: #000;
+    }
+
+    html body table td, html body table th {
+      border: 1px solid #d6d6d6;
+      padding: 6px 13px;
+    }
+
+    /* Definition lists */
+    html body dl {
+      padding: 0;
+    }
+
+    html body dl dt {
+      padding: 0;
+      margin-top: 16px;
+      font-size: 1em;
+      font-style: italic;
+      font-weight: 700;
+    }
+
+    html body dl dd {
+      padding: 0 16px;
+      margin-bottom: 16px;
+    }
+
+    /* Code */
+    html body code {
+      font-family: Menlo, Monaco, Consolas, 'Courier New', monospace;
+      font-size: .85em;
+      color: #000;
+      background-color: #f0f0f0;
+      border-radius: 3px;
+      padding: .2em 0;
+    }
+
+    html body code::before, html body code::after {
+      letter-spacing: -.2em;
+      content: "\\00a0";
+    }
+
+    html body pre > code {
+      padding: 0;
+      margin: 0;
+      word-break: normal;
+      white-space: pre;
+      background: transparent;
+      border: 0;
+    }
+
+    html body .highlight {
+      margin-bottom: 16px;
+    }
+
+    html body .highlight pre, html body pre {
+      padding: 1em;
+      overflow: auto;
+      line-height: 1.45;
+      border: #d6d6d6;
+      border-radius: 3px;
+    }
+
+    html body .highlight pre {
+      margin-bottom: 0;
+      word-break: normal;
+    }
+
+    html body pre code, html body pre tt {
+      display: inline;
+      max-width: initial;
+      padding: 0;
+      margin: 0;
+      overflow: initial;
+      line-height: inherit;
+      word-wrap: normal;
+      background-color: transparent;
+      border: 0;
+    }
+
+    html body pre code:before, html body pre code:after,
+    html body pre tt:before, html body pre tt:after {
+      content: normal;
+    }
+
+    html body p, html body blockquote, html body ul, html body ol,
+    html body dl, html body pre {
+      margin-top: 0;
+      margin-bottom: 16px;
+    }
+
+    html body kbd {
+      color: #000;
+      border: 1px solid #d6d6d6;
+      border-bottom: 2px solid #c7c7c7;
+      padding: 2px 4px;
+      background-color: #f0f0f0;
+      border-radius: 3px;
+    }
+
+    /* Prism syntax highlighting for code blocks */
+    code[class*="language-"],
+    pre[class*="language-"] {
+      color: #333;
+      background: none;
+      font-family: Consolas, "Liberation Mono", Menlo, Courier, monospace;
+      text-align: left;
+      white-space: pre;
+      word-spacing: normal;
+      word-break: normal;
+      word-wrap: normal;
+      line-height: 1.4;
+      -moz-tab-size: 8;
+      -o-tab-size: 8;
+      tab-size: 8;
+      -webkit-hyphens: none;
+      -moz-hyphens: none;
+      -ms-hyphens: none;
+      hyphens: none;
+    }
+
+    pre[class*="language-"] {
+      padding: .8em;
+      overflow: auto;
+      border-radius: 3px;
+      background: #f5f5f5;
+    }
+
+    :not(pre) > code[class*="language-"] {
+      padding: .1em;
+      border-radius: .3em;
+      white-space: normal;
+      background: #f5f5f5;
+    }
+
+    /* Markdown preview wrapper */
+    .markdown-preview {
+      width: 100%;
+      height: 100%;
+      box-sizing: border-box;
+    }
+
+    .markdown-preview ul {
+      list-style: disc;
+    }
+
+    .markdown-preview ul ul {
+      list-style: circle;
+    }
+
+    .markdown-preview ul ul ul {
+      list-style: square;
+    }
+
+    .markdown-preview ol {
+      list-style: decimal;
+    }
+
+    .markdown-preview ol ol,
+    .markdown-preview ul ol {
+      list-style-type: lower-roman;
+    }
+
+    .markdown-preview ol ol ol,
+    .markdown-preview ol ul ol,
+    .markdown-preview ul ol ol,
+    .markdown-preview ul ul ol {
+      list-style-type: lower-alpha;
+    }
+
+    /* Page layout for HTML export */
+    html body[for="html-export"]:not([data-presentation-mode]) {
+      position: relative;
+      width: 100%;
+      height: 100%;
+      top: 0;
+      left: 0;
+      margin: 0;
+      padding: 0;
+      overflow: auto;
+    }
+
+    html body[for="html-export"]:not([data-presentation-mode]) .markdown-preview {
+      position: relative;
+      top: 0;
+    }
+
+    @media screen and (min-width: 914px) {
+      html body[for="html-export"]:not([data-presentation-mode]) .markdown-preview {
+        padding: 2em calc(50% - 457px + 2em);
+      }
+    }
+
+    @media screen and (max-width: 914px) {
+      html body[for="html-export"]:not([data-presentation-mode]) .markdown-preview {
+        padding: 2em;
+      }
+    }
+
+    @media screen and (max-width: 450px) {
+      html body[for="html-export"]:not([data-presentation-mode]) .markdown-preview {
+        font-size: 14px !important;
+        padding: 1em;
+      }
+    }
+
+    @media print {
+      html body {
+        background-color: #fff;
+      }
+      html body h1, html body h2, html body h3, html body h4, html body h5, html body h6 {
+        color: #000;
+        page-break-after: avoid;
+      }
+      html body blockquote {
+        color: #5c5c5c;
+      }
+      html body pre {
+        page-break-inside: avoid;
+      }
+      html body table {
+        display: table;
+      }
+      html body img {
+        display: block;
+        max-width: 100%;
+        max-height: 100%;
+      }
+      html body pre,
+      html body code {
+        word-wrap: break-word;
+        white-space: pre;
+      }
+    }
+  </style>
+</head>
+<body for="html-export">
+  <div class="markdown-preview">
+${bodyContent}
+  </div>
+</body>
+</html>`;
   }
 
   /**
@@ -310,7 +806,7 @@ export class MarkdownEditorProvider implements vscode.CustomTextEditorProvider {
     }
 
     body {
-      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+      font-family: 'Helvetica Neue', Helvetica, 'Segoe UI', Arial, freesans, sans-serif;
       font-size: ${fontSize}px;
       line-height: ${lineHeight};
       color: var(--vscode-editor-foreground);
@@ -410,9 +906,42 @@ export class MarkdownEditorProvider implements vscode.CustomTextEditorProvider {
       border-radius: 4px;
       margin: 20px;
     }
+
+    /* Context menu */
+    #context-menu {
+      display: none;
+      position: fixed;
+      background-color: #ffffff;
+      border: 1px solid #d6d6d6;
+      border-radius: 3px;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+      z-index: 10000;
+      min-width: 180px;
+      padding: 4px 0;
+    }
+
+    .context-menu-item {
+      padding: 6px 12px;
+      cursor: pointer;
+      font-size: 13px;
+      color: #000000;
+    }
+
+    .context-menu-item:hover {
+      background-color: #f0f0f0;
+    }
+
+    .context-menu-separator {
+      height: 1px;
+      background-color: #d6d6d6;
+      margin: 4px 0;
+    }
   </style>
 </head>
 <body data-theme="${themeType}" data-mode="${defaultMode}">
+  <div id="context-menu">
+    <div class="context-menu-item" data-action="openInBrowser">Open in Browser</div>
+  </div>
   <div id="editor">
     <div class="loading">Loading editor...</div>
   </div>
