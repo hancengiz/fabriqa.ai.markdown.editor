@@ -597,7 +597,7 @@ export class MarkdownEditorProvider implements vscode.CustomTextEditorProvider {
   <style>
     /* CrossNote / Markdown Preview Enhanced CSS - Theme Aware */
     html body {
-      font-family: 'Helvetica Neue', Helvetica, 'Segoe UI', Arial, freesans, sans-serif;
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Helvetica Neue', Helvetica, Arial, freesans, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji', 'Noto Color Emoji';
       font-size: 16px;
       line-height: 1.6;
       color: ${colors.body.text};
