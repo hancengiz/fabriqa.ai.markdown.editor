@@ -82,6 +82,26 @@ export class MarkdownEditorProvider implements vscode.CustomTextEditorProvider {
   }
 
   /**
+   * Resolve auto theme to actual light or dark based on VS Code's current theme
+   * Handles all ColorThemeKind values including High Contrast themes
+   */
+  private resolveAutoTheme(): 'light' | 'dark' {
+    const themeKind = vscode.window.activeColorTheme.kind;
+
+    // ColorThemeKind values:
+    // Light = 1, Dark = 2, HighContrast = 3, HighContrastLight = 4
+    switch (themeKind) {
+      case vscode.ColorThemeKind.Dark:
+      case vscode.ColorThemeKind.HighContrast:
+        return 'dark';
+      case vscode.ColorThemeKind.Light:
+      case vscode.ColorThemeKind.HighContrastLight:
+      default:
+        return 'light';
+    }
+  }
+
+  /**
    * Resolve a custom editor for a given document
    */
 
@@ -346,7 +366,7 @@ export class MarkdownEditorProvider implements vscode.CustomTextEditorProvider {
     const currentTheme = this.resolveTheme();
     // For HTML export, resolve auto theme to light or dark based on VSCode's current theme
     const resolvedTheme = currentTheme === 'auto'
-      ? (vscode.window.activeColorTheme.kind === vscode.ColorThemeKind.Dark ? 'dark' : 'light')
+      ? this.resolveAutoTheme()
       : currentTheme;
     const isDark = resolvedTheme === 'dark';
 

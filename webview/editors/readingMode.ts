@@ -117,27 +117,27 @@ export const readingModePlugin = ViewPlugin.fromClass(
   --base-text-weight-semibold: 600;
   --fontStack-monospace: Menlo, SFMono-Regular, Consolas, "Roboto Mono", monospace;
 
-  /* Light theme colors - GitHub inspired */
-  --fgColor-default: #1f2328;
-  --fgColor-muted: #656d76;
-  --fgColor-accent: #0969da;
-  --fgColor-success: #1a7f37;
-  --fgColor-attention: #9a6700;
-  --fgColor-danger: #e51400;
-  --fgColor-done: #8250df;
-  --bgColor-default: #ffffff;
-  --bgColor-muted: #f6f8fa;
-  --bgColor-neutral-muted: #f3f3f3;
-  --bgColor-attention-muted: #fff8c5;
-  --borderColor-default: #d0d7de;
-  --borderColor-muted: #d8dee4;
-  --borderColor-neutral-muted: #d8dee4;
-  --borderColor-accent-emphasis: #0969da;
-  --borderColor-success-emphasis: #1a7f37;
-  --borderColor-attention-emphasis: #9a6700;
-  --borderColor-danger-emphasis: #e51400;
-  --borderColor-done-emphasis: #8250df;
-  --focus-outlineColor: #0969da;
+  /* Theme colors - dynamically using current theme */
+  --fgColor-default: ${theme.fgColor.default};
+  --fgColor-muted: ${theme.fgColor.muted};
+  --fgColor-accent: ${theme.fgColor.accent};
+  --fgColor-success: ${theme.fgColor.success};
+  --fgColor-attention: ${theme.fgColor.attention};
+  --fgColor-danger: ${theme.fgColor.danger};
+  --fgColor-done: ${theme.fgColor.done};
+  --bgColor-default: ${theme.bgColor.default};
+  --bgColor-muted: ${theme.bgColor.muted};
+  --bgColor-neutral-muted: ${theme.bgColor.neutral};
+  --bgColor-attention-muted: ${theme.bgColor.attention};
+  --borderColor-default: ${theme.borderColor.default};
+  --borderColor-muted: ${theme.borderColor.muted};
+  --borderColor-neutral-muted: ${theme.borderColor.muted};
+  --borderColor-accent-emphasis: ${theme.borderColor.accent};
+  --borderColor-success-emphasis: ${theme.borderColor.success};
+  --borderColor-attention-emphasis: ${theme.borderColor.attention};
+  --borderColor-danger-emphasis: ${theme.borderColor.danger};
+  --borderColor-done-emphasis: ${theme.borderColor.done};
+  --focus-outlineColor: ${theme.focus.outline};
   --color-prettylights-syntax-comment: #6e7781;
   --color-prettylights-syntax-constant: #0550ae;
   --color-prettylights-syntax-constant-other-reference-link: #0a3069;
