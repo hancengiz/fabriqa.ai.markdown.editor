@@ -1099,15 +1099,48 @@ function setupContextMenu(): void {
         // Get current markdown content
         const markdown = editorView?.state.doc.toString() || '';
 
-        // Get actual computed theme colors
+        // Get actual computed theme colors (all of them for HTML export)
         const theme = getCurrentTheme();
         const themeColors = {
           bgColor: {
             default: getComputedColor(theme.bgColor.default),
-            muted: getComputedColor(theme.bgColor.muted)
+            muted: getComputedColor(theme.bgColor.muted),
+            neutral: getComputedColor(theme.bgColor.neutral),
+            attention: getComputedColor(theme.bgColor.attention)
           },
           fgColor: {
-            default: getComputedColor(theme.fgColor.default)
+            default: getComputedColor(theme.fgColor.default),
+            muted: getComputedColor(theme.fgColor.muted),
+            accent: getComputedColor(theme.fgColor.accent),
+            success: getComputedColor(theme.fgColor.success),
+            attention: getComputedColor(theme.fgColor.attention),
+            danger: getComputedColor(theme.fgColor.danger),
+            done: getComputedColor(theme.fgColor.done)
+          },
+          borderColor: {
+            default: getComputedColor(theme.borderColor.default),
+            muted: getComputedColor(theme.borderColor.muted),
+            accent: getComputedColor(theme.borderColor.accent)
+          },
+          code: {
+            background: getComputedColor(theme.code.background),
+            text: getComputedColor(theme.code.text),
+            inlineBackground: getComputedColor(theme.code.inlineBackground)
+          },
+          blockquote: {
+            background: getComputedColor(theme.blockquote.background),
+            text: getComputedColor(theme.blockquote.text),
+            border: getComputedColor(theme.blockquote.border)
+          },
+          link: {
+            default: getComputedColor(theme.link.default),
+            hover: getComputedColor(theme.link.hover)
+          },
+          checkbox: {
+            border: getComputedColor(theme.checkbox.border),
+            background: getComputedColor(theme.checkbox.background),
+            checkedBackground: getComputedColor(theme.checkbox.checkedBackground),
+            checkedBorder: getComputedColor(theme.checkbox.checkedBorder)
           }
         };
 

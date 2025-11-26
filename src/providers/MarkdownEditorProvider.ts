@@ -371,8 +371,14 @@ export class MarkdownEditorProvider implements vscode.CustomTextEditorProvider {
         breaks: true
       });
 
+      // Process GitHub alerts before converting to HTML
+      const processedMarkdown = this.processGitHubAlerts(markdown);
+
       // Convert markdown to HTML
-      const htmlContent = await marked(markdown);
+      let htmlContent = await marked(processedMarkdown);
+
+      // Post-process: Replace alert placeholders with actual alert HTML
+      htmlContent = await this.replaceAlertPlaceholders(htmlContent);
 
       // Create complete HTML document with CrossNote styling
       const fullHtml = this.generateFullHtml(htmlContent, document, themeColors);
@@ -399,6 +405,94 @@ export class MarkdownEditorProvider implements vscode.CustomTextEditorProvider {
   }
 
   /**
+   * Process GitHub-style alerts in markdown
+   * Converts > [!TYPE] syntax to a placeholder that will be replaced after markdown processing
+   */
+  private processGitHubAlerts(markdown: string): string {
+    // Match GitHub alert patterns like:
+    // > [!NOTE]
+    // > Content here
+    const alertPattern = /^>\s*\[!(NOTE|TIP|IMPORTANT|WARNING|CAUTION)\]\s*\n((?:>\s*.*\n?)*)/gim;
+    
+    const alertIcons: Record<string, string> = {
+      'NOTE': 'ℹ️',
+      'TIP': '💡',
+      'IMPORTANT': '❗',
+      'WARNING': '⚠️',
+      'CAUTION': '⚠️'
+    };
+
+    // Store alert data for post-processing
+    const alerts: Array<{type: string, content: string, icon: string}> = [];
+    let alertIndex = 0;
+
+    // Replace alerts with placeholders
+    const withPlaceholders = markdown.replace(alertPattern, (match, type, content) => {
+      const alertType = type.toLowerCase();
+      const icon = alertIcons[type.toUpperCase()];
+      
+      // Remove leading '> ' from each content line to get raw markdown
+      const cleanContent = content
+        .split('\n')
+        .map((line: string) => line.replace(/^>\s?/, ''))
+        .join('\n')
+        .trim();
+
+      alerts.push({
+        type: alertType,
+        content: cleanContent,
+        icon: icon
+      });
+
+      // Use a unique placeholder that won't be touched by marked
+      return `:::GITHUB_ALERT_${alertIndex++}:::\n`;
+    });
+
+    // Store alerts on the instance for post-processing
+    (this as any)._pendingAlerts = alerts;
+
+    return withPlaceholders;
+  }
+
+  /**
+   * Replace alert placeholders with actual alert HTML after markdown processing
+   */
+  private async replaceAlertPlaceholders(html: string): Promise<string> {
+    const alerts = (this as any)._pendingAlerts as Array<{type: string, content: string, icon: string}> || [];
+    
+    // Clean up the stored alerts
+    delete (this as any)._pendingAlerts;
+
+    if (alerts.length === 0) {
+      return html;
+    }
+
+    // Process each alert's content as markdown
+    let result = html;
+    for (let i = 0; i < alerts.length; i++) {
+      const alert = alerts[i];
+      const placeholder = `<p>:::<span>GITHUB_ALERT_${i}</span>:::</p>`;
+      const placeholderAlt = `:::GITHUB_ALERT_${i}:::`;
+      
+      // Convert the alert content from markdown to HTML
+      const alertContentHtml = await marked(alert.content);
+      
+      // Create the alert HTML
+      const alertHtml = `<div class="markdown-alert markdown-alert-${alert.type}">
+  <p class="markdown-alert-title">${alert.icon} ${alert.type.charAt(0).toUpperCase() + alert.type.slice(1)}</p>
+  ${alertContentHtml}
+</div>`;
+
+      // Replace placeholder (marked wraps it in a <p> tag)
+      result = result.replace(placeholder, alertHtml);
+      // Also try without the <p> wrapper in case marked didn't wrap it
+      result = result.replace(placeholderAlt, alertHtml);
+    }
+
+    return result;
+  }
+
+  /**
    * Generate complete HTML document with CrossNote (Markdown Preview Enhanced) styling
    * Supports both light and dark themes, and uses actual theme colors when available
    */
@@ -406,13 +500,15 @@ export class MarkdownEditorProvider implements vscode.CustomTextEditorProvider {
     const title = path.basename(document.uri.fsPath, '.md');
     const currentTheme = this.resolveTheme();
 
-    // If we have actual theme colors from the webview (auto mode), use them to detect dark/light
+    // If we have actual theme colors from the webview (auto mode), use them
     let isDark = false;
+    let useActualColors = false;
     if (themeColors && themeColors.bgColor && themeColors.bgColor.default) {
       // Check if background is dark by parsing the color
       const bgColor = themeColors.bgColor.default;
       isDark = this.isColorDark(bgColor);
-      Logger.info(`Using actual theme colors, detected as ${isDark ? 'dark' : 'light'} based on background: ${bgColor}`);
+      useActualColors = true;
+      Logger.info(`Using actual VSCode theme colors, detected as ${isDark ? 'dark' : 'light'} based on background: ${bgColor}`);
     } else {
       // Fallback to theme detection
       const resolvedTheme = currentTheme === 'auto'
@@ -420,6 +516,77 @@ export class MarkdownEditorProvider implements vscode.CustomTextEditorProvider {
         : currentTheme;
       isDark = resolvedTheme === 'dark';
     }
+
+    // Define color variables based on whether we have actual theme colors or fallback
+    const colors = useActualColors ? {
+      // Use actual VSCode theme colors
+      body: {
+        text: themeColors.fgColor.default,
+        background: themeColors.bgColor.default
+      },
+      heading: themeColors.fgColor.default,
+      strong: themeColors.fgColor.default,
+      del: themeColors.fgColor.muted,
+      link: {
+        default: themeColors.link.default,
+        hover: themeColors.link.hover
+      },
+      blockquote: {
+        text: themeColors.blockquote.text,
+        background: themeColors.blockquote.background,
+        border: themeColors.blockquote.border
+      },
+      hr: themeColors.borderColor.muted,
+      table: {
+        heading: themeColors.fgColor.default,
+        border: themeColors.borderColor.default
+      },
+      code: {
+        text: themeColors.code.text,
+        background: themeColors.code.background,
+        inlineBackground: themeColors.code.inlineBackground
+      },
+      kbd: {
+        text: themeColors.fgColor.default,
+        background: themeColors.code.background,
+        border: themeColors.borderColor.default,
+        borderBottom: themeColors.borderColor.muted
+      }
+    } : {
+      // Fallback to hardcoded light/dark colors
+      body: {
+        text: isDark ? '#d4d4d4' : '#333',
+        background: isDark ? '#1e1e1e' : '#fff'
+      },
+      heading: isDark ? '#d4d4d4' : '#000',
+      strong: isDark ? '#d4d4d4' : '#000',
+      del: isDark ? '#858585' : '#5c5c5c',
+      link: {
+        default: isDark ? '#4fc1ff' : '#08c',
+        hover: isDark ? '#6dd1ff' : '#00a3f5'
+      },
+      blockquote: {
+        text: isDark ? '#858585' : '#5c5c5c',
+        background: isDark ? '#252526' : '#f0f0f0',
+        border: isDark ? '#3e3e42' : '#d6d6d6'
+      },
+      hr: isDark ? '#3e3e42' : '#d6d6d6',
+      table: {
+        heading: isDark ? '#d4d4d4' : '#000',
+        border: isDark ? '#3e3e42' : '#d6d6d6'
+      },
+      code: {
+        text: isDark ? '#d4d4d4' : '#000',
+        background: isDark ? '#252526' : '#f5f5f5',
+        inlineBackground: isDark ? '#2d2d30' : '#f0f0f0'
+      },
+      kbd: {
+        text: isDark ? '#d4d4d4' : '#000',
+        background: isDark ? '#252526' : '#f0f0f0',
+        border: isDark ? '#3e3e42' : '#d6d6d6',
+        borderBottom: isDark ? '#2d2d30' : '#c7c7c7'
+      }
+    };
 
     return `<!DOCTYPE html>
 <html>
@@ -433,8 +600,8 @@ export class MarkdownEditorProvider implements vscode.CustomTextEditorProvider {
       font-family: 'Helvetica Neue', Helvetica, 'Segoe UI', Arial, freesans, sans-serif;
       font-size: 16px;
       line-height: 1.6;
-      color: ${isDark ? '#d4d4d4' : '#333'};
-      background-color: ${isDark ? '#1e1e1e' : '#fff'};
+      color: ${colors.body.text};
+      background-color: ${colors.body.background};
       overflow: initial;
       box-sizing: border-box;
       word-wrap: break-word;
@@ -449,7 +616,7 @@ export class MarkdownEditorProvider implements vscode.CustomTextEditorProvider {
       line-height: 1.2;
       margin-top: 1em;
       margin-bottom: 16px;
-      color: ${isDark ? '#d4d4d4' : '#000'};
+      color: ${colors.heading};
     }
 
     html body h1 {
@@ -505,11 +672,11 @@ export class MarkdownEditorProvider implements vscode.CustomTextEditorProvider {
 
     /* Text styling */
     html body strong {
-      color: ${isDark ? '#d4d4d4' : '#000'};
+      color: ${colors.strong};
     }
 
     html body del {
-      color: ${isDark ? '#858585' : '#5c5c5c'};
+      color: ${colors.del};
     }
 
     html body a:not([href]) {
@@ -518,12 +685,12 @@ export class MarkdownEditorProvider implements vscode.CustomTextEditorProvider {
     }
 
     html body a {
-      color: ${isDark ? '#4fc1ff' : '#08c'};
+      color: ${colors.link.default};
       text-decoration: none;
     }
 
     html body a:hover {
-      color: ${isDark ? '#6dd1ff' : '#00a3f5'};
+      color: ${colors.link.hover};
       text-decoration: none;
     }
 
@@ -584,9 +751,9 @@ export class MarkdownEditorProvider implements vscode.CustomTextEditorProvider {
       margin: 16px 0;
       font-size: inherit;
       padding: 0 15px;
-      color: ${isDark ? '#858585' : '#5c5c5c'};
-      background-color: ${isDark ? '#252526' : '#f0f0f0'};
-      border-left: 4px solid ${isDark ? '#3e3e42' : '#d6d6d6'};
+      color: ${colors.blockquote.text};
+      background-color: ${colors.blockquote.background};
+      border-left: 4px solid ${colors.blockquote.border};
     }
 
     html body blockquote > :first-child {
@@ -601,7 +768,7 @@ export class MarkdownEditorProvider implements vscode.CustomTextEditorProvider {
     html body hr {
       height: 4px;
       margin: 32px 0;
-      background-color: ${isDark ? '#3e3e42' : '#d6d6d6'};
+      background-color: ${colors.hr};
       border: 0 none;
     }
 
@@ -619,11 +786,11 @@ export class MarkdownEditorProvider implements vscode.CustomTextEditorProvider {
 
     html body table th {
       font-weight: 700;
-      color: ${isDark ? '#d4d4d4' : '#000'};
+      color: ${colors.table.heading};
     }
 
     html body table td, html body table th {
-      border: 1px solid ${isDark ? '#3e3e42' : '#d6d6d6'};
+      border: 1px solid ${colors.table.border};
       padding: 6px 13px;
     }
 
@@ -649,8 +816,8 @@ export class MarkdownEditorProvider implements vscode.CustomTextEditorProvider {
     html body code {
       font-family: Menlo, Monaco, Consolas, 'Courier New', monospace;
       font-size: .85em;
-      color: ${isDark ? '#d4d4d4' : '#000'};
-      background-color: ${isDark ? '#2d2d30' : '#f0f0f0'};
+      color: ${colors.code.text};
+      background-color: ${colors.code.inlineBackground};
       border-radius: 3px;
       padding: .2em 0;
     }
@@ -677,8 +844,8 @@ export class MarkdownEditorProvider implements vscode.CustomTextEditorProvider {
       padding: 1em;
       overflow: auto;
       line-height: 1.45;
-      background-color: ${isDark ? '#252526' : '#f5f5f5'};
-      border: ${isDark ? '#3e3e42' : '#d6d6d6'};
+      background-color: ${colors.code.background};
+      border: ${colors.table.border};
       border-radius: 3px;
     }
 
@@ -711,18 +878,18 @@ export class MarkdownEditorProvider implements vscode.CustomTextEditorProvider {
     }
 
     html body kbd {
-      color: ${isDark ? '#d4d4d4' : '#000'};
-      border: 1px solid ${isDark ? '#3e3e42' : '#d6d6d6'};
-      border-bottom: 2px solid ${isDark ? '#2d2d30' : '#c7c7c7'};
+      color: ${colors.kbd.text};
+      border: 1px solid ${colors.kbd.border};
+      border-bottom: 2px solid ${colors.kbd.borderBottom};
       padding: 2px 4px;
-      background-color: ${isDark ? '#252526' : '#f0f0f0'};
+      background-color: ${colors.kbd.background};
       border-radius: 3px;
     }
 
     /* Prism syntax highlighting for code blocks */
     code[class*="language-"],
     pre[class*="language-"] {
-      color: ${isDark ? '#d4d4d4' : '#333'};
+      color: ${colors.code.text};
       background: none;
       font-family: Consolas, "Liberation Mono", Menlo, Courier, monospace;
       text-align: left;
@@ -744,14 +911,14 @@ export class MarkdownEditorProvider implements vscode.CustomTextEditorProvider {
       padding: .8em;
       overflow: auto;
       border-radius: 3px;
-      background: ${isDark ? '#252526' : '#f5f5f5'};
+      background: ${colors.code.background};
     }
 
     :not(pre) > code[class*="language-"] {
       padding: .1em;
       border-radius: .3em;
       white-space: normal;
-      background: ${isDark ? '#252526' : '#f5f5f5'};
+      background: ${colors.code.background};
     }
 
     /* Markdown preview wrapper */
@@ -827,14 +994,14 @@ export class MarkdownEditorProvider implements vscode.CustomTextEditorProvider {
 
     @media print {
       html body {
-        background-color: ${isDark ? '#1e1e1e' : '#fff'};
+        background-color: ${colors.body.background};
       }
       html body h1, html body h2, html body h3, html body h4, html body h5, html body h6 {
-        color: ${isDark ? '#d4d4d4' : '#000'};
+        color: ${colors.heading};
         page-break-after: avoid;
       }
       html body blockquote {
-        color: ${isDark ? '#858585' : '#5c5c5c'};
+        color: ${colors.blockquote.text};
       }
       html body pre {
         page-break-inside: avoid;
@@ -852,6 +1019,75 @@ export class MarkdownEditorProvider implements vscode.CustomTextEditorProvider {
         word-wrap: break-word;
         white-space: pre;
       }
+    }
+
+    /* GitHub Alerts / Admonitions */
+    .markdown-alert {
+      padding: 0.5rem 1rem;
+      margin-bottom: 1rem;
+      border-left: 0.25rem solid ${colors.table.border};
+      border-radius: 0.25rem;
+    }
+
+    .markdown-alert > :first-child {
+      margin-top: 0;
+    }
+
+    .markdown-alert > :last-child {
+      margin-bottom: 0;
+    }
+
+    .markdown-alert .markdown-alert-title {
+      display: flex;
+      font-weight: 600;
+      align-items: center;
+      line-height: 1;
+      margin-bottom: 0.5rem;
+    }
+
+    .markdown-alert-note {
+      border-left-color: ${useActualColors ? (themeColors.borderColor.accent || '#0969da') : (isDark ? '#4493f8' : '#0969da')};
+      background-color: ${useActualColors ? (themeColors.bgColor.muted || 'rgba(9, 105, 218, 0.1)') : (isDark ? 'rgba(68, 147, 248, 0.15)' : 'rgba(9, 105, 218, 0.1)')};
+    }
+
+    .markdown-alert-note .markdown-alert-title {
+      color: ${useActualColors ? (themeColors.fgColor.accent || '#0969da') : (isDark ? '#4493f8' : '#0969da')};
+    }
+
+    .markdown-alert-tip {
+      border-left-color: ${useActualColors ? (themeColors.borderColor.success || '#1a7f37') : (isDark ? '#3fb950' : '#1a7f37')};
+      background-color: ${useActualColors ? 'rgba(26, 127, 55, 0.1)' : (isDark ? 'rgba(63, 185, 80, 0.15)' : 'rgba(26, 127, 55, 0.1)')};
+    }
+
+    .markdown-alert-tip .markdown-alert-title {
+      color: ${useActualColors ? (themeColors.fgColor.success || '#1a7f37') : (isDark ? '#3fb950' : '#1a7f37')};
+    }
+
+    .markdown-alert-important {
+      border-left-color: ${useActualColors ? (themeColors.borderColor.done || '#8250df') : (isDark ? '#a371f7' : '#8250df')};
+      background-color: ${useActualColors ? 'rgba(130, 80, 223, 0.1)' : (isDark ? 'rgba(163, 113, 247, 0.15)' : 'rgba(130, 80, 223, 0.1)')};
+    }
+
+    .markdown-alert-important .markdown-alert-title {
+      color: ${useActualColors ? (themeColors.fgColor.done || '#8250df') : (isDark ? '#a371f7' : '#8250df')};
+    }
+
+    .markdown-alert-warning {
+      border-left-color: ${useActualColors ? (themeColors.borderColor.attention || '#9a6700') : (isDark ? '#d29922' : '#9a6700')};
+      background-color: ${useActualColors ? (themeColors.bgColor.attention || 'rgba(154, 103, 0, 0.1)') : (isDark ? 'rgba(210, 153, 34, 0.15)' : 'rgba(154, 103, 0, 0.1)')};
+    }
+
+    .markdown-alert-warning .markdown-alert-title {
+      color: ${useActualColors ? (themeColors.fgColor.attention || '#9a6700') : (isDark ? '#d29922' : '#9a6700')};
+    }
+
+    .markdown-alert-caution {
+      border-left-color: ${useActualColors ? (themeColors.borderColor.danger || '#d1242f') : (isDark ? '#f85149' : '#d1242f')};
+      background-color: ${useActualColors ? 'rgba(209, 36, 47, 0.1)' : (isDark ? 'rgba(248, 81, 73, 0.15)' : 'rgba(209, 36, 47, 0.1)')};
+    }
+
+    .markdown-alert-caution .markdown-alert-title {
+      color: ${useActualColors ? (themeColors.fgColor.danger || '#d1242f') : (isDark ? '#f85149' : '#d1242f')};
     }
   </style>
 </head>

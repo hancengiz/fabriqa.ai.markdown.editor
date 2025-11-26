@@ -45,16 +45,16 @@ export const vscodeAutoTheme: ThemeInfo = {
 
     // Code colors
     code: {
-      background: 'var(--vscode-textCodeBlock-background)',
-      text: 'var(--vscode-editor-foreground)',
-      inlineBackground: 'var(--vscode-textCodeBlock-background)',
+      background: 'var(--vscode-input-background)',
+      text: 'var(--vscode-textPreformat-foreground, var(--vscode-editor-foreground))',
+      inlineBackground: 'var(--vscode-input-background)',
     },
 
     // Blockquote colors
     blockquote: {
-      background: 'var(--vscode-textBlockQuote-background)',
+      background: 'var(--vscode-input-background)',
       text: 'var(--vscode-descriptionForeground)',
-      border: 'var(--vscode-textBlockQuote-border)',
+      border: 'var(--vscode-panel-border)',
     },
 
     // Checkbox colors
