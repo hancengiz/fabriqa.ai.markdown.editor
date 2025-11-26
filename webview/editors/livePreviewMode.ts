@@ -132,7 +132,7 @@ class HorizontalRuleWidget extends WidgetType {
       width: 100%;
       border: none;
       border-bottom: 2px solid ${theme.borderColor.muted};
-      margin: 16px 0;
+      margin: 4px 0;
       opacity: 0.6;
     `;
     return hr;
