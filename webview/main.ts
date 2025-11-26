@@ -41,8 +41,6 @@ import {
 
 // Basic setup extensions (equivalent to basicSetup)
 const basicExtensions = [
-  lineNumbers(),
-  highlightActiveLineGutter(),
   highlightSpecialChars(),
   history(),
   foldGutter(),
@@ -315,7 +313,7 @@ function getModeExtensions(mode: EditorMode): any[] {
     case 'livePreview':
       return [livePreviewPlugin];
     case 'source':
-      return []; // No special extensions for source mode
+      return [lineNumbers(), highlightActiveLineGutter()]; // Show line numbers only in source mode
     case 'reading':
       return [readingModePlugin, EditorView.editable.of(false)];
     default:
