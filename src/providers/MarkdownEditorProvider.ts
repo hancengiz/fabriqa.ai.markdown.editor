@@ -413,7 +413,7 @@ export class MarkdownEditorProvider implements vscode.CustomTextEditorProvider {
     // > [!NOTE]
     // > Content here
     const alertPattern = /^>\s*\[!(NOTE|TIP|IMPORTANT|WARNING|CAUTION)\]\s*\n((?:>\s*.*\n?)*)/gim;
-    
+
     const alertIcons: Record<string, string> = {
       'NOTE': 'ℹ️',
       'TIP': '💡',
@@ -423,14 +423,14 @@ export class MarkdownEditorProvider implements vscode.CustomTextEditorProvider {
     };
 
     // Store alert data for post-processing
-    const alerts: Array<{type: string, content: string, icon: string}> = [];
+    const alerts: Array<{ type: string, content: string, icon: string }> = [];
     let alertIndex = 0;
 
     // Replace alerts with placeholders
     const withPlaceholders = markdown.replace(alertPattern, (match, type, content) => {
       const alertType = type.toLowerCase();
       const icon = alertIcons[type.toUpperCase()];
-      
+
       // Remove leading '> ' from each content line to get raw markdown
       const cleanContent = content
         .split('\n')
@@ -458,8 +458,8 @@ export class MarkdownEditorProvider implements vscode.CustomTextEditorProvider {
    * Replace alert placeholders with actual alert HTML after markdown processing
    */
   private async replaceAlertPlaceholders(html: string): Promise<string> {
-    const alerts = (this as any)._pendingAlerts as Array<{type: string, content: string, icon: string}> || [];
-    
+    const alerts = (this as any)._pendingAlerts as Array<{ type: string, content: string, icon: string }> || [];
+
     // Clean up the stored alerts
     delete (this as any)._pendingAlerts;
 
@@ -473,10 +473,10 @@ export class MarkdownEditorProvider implements vscode.CustomTextEditorProvider {
       const alert = alerts[i];
       const placeholder = `<p>:::<span>GITHUB_ALERT_${i}</span>:::</p>`;
       const placeholderAlt = `:::GITHUB_ALERT_${i}:::`;
-      
+
       // Convert the alert content from markdown to HTML
       const alertContentHtml = await marked(alert.content);
-      
+
       // Create the alert HTML
       const alertHtml = `<div class="markdown-alert markdown-alert-${alert.type}">
   <p class="markdown-alert-title">${alert.icon} ${alert.type.charAt(0).toUpperCase() + alert.type.slice(1)}</p>
@@ -1125,9 +1125,14 @@ ${bodyContent}
       vscode.Uri.file(path.join(this.context.extensionPath, 'dist', 'webview.js'))
     );
 
-    // Get CSS file URI
+    // Get compiled Tailwind CSS file URI
     const cssUri = webview.asWebviewUri(
-      vscode.Uri.file(path.join(this.context.extensionPath, 'webview', 'styles', 'editor.css'))
+      vscode.Uri.file(path.join(this.context.extensionPath, 'dist', 'style.css'))
+    );
+
+    // Get VS Code variables CSS URI
+    const vscodeVariablesUri = webview.asWebviewUri(
+      vscode.Uri.file(path.join(this.context.extensionPath, 'webview', 'styles', 'vscode-variables.css'))
     );
 
     // Get CSP source
@@ -1149,89 +1154,92 @@ ${bodyContent}
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta http-equiv="Content-Security-Policy" content="default-src 'none'; style-src ${cspSource} 'unsafe-inline'; script-src ${cspSource}; img-src https: data:;">
   <title>fabriqa Markdown Editor</title>
+  <link rel="stylesheet" href="${vscodeVariablesUri}">
   <link rel="stylesheet" href="${cssUri}">
   <style>
-    * {
+    /* Base styles that might not be covered by Tailwind yet */
+    :root {
+      --font-size: ${fontSize}px;
+      --line-height: ${lineHeight};
+    }
+    
+    body {
+      font-family: var(--vscode-font-family, 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif);
+      font-size: var(--vscode-font-size, 13px);
+      color: var(--vscode-foreground);
+      height: 100%;
+      width: 100%;
       margin: 0;
       padding: 0;
-      box-sizing: border-box;
-    }
-
-    html, body {
-      height: 100%;
       overflow: hidden;
+      -webkit-font-smoothing: antialiased;
+      -moz-osx-font-smoothing: grayscale;
     }
 
-    body {
-      font-family: 'Helvetica Neue', Helvetica, 'Segoe UI', Arial, freesans, sans-serif;
-      font-size: ${fontSize}px;
-      line-height: ${lineHeight};
-      color: var(--vscode-editor-foreground);
-      background-color: var(--vscode-editor-background);
-      display: flex;
-      flex-direction: column;
+    /* Default to monospace for source mode or fallback */
+    .cm-editor, .cm-scroller, .cm-content {
+      font-family: "SF Mono", Monaco, Menlo, Courier, monospace !important;
+      outline: none !important;
     }
 
-    #editor {
-      flex: 1;
-      overflow: auto;
-      height: 100%;
+    /* Live Preview Mode: Use sans-serif for the main content */
+    body[data-mode="livePreview"] .cm-editor,
+    body[data-mode="livePreview"] .cm-scroller,
+    body[data-mode="livePreview"] .cm-content {
+      font-family: var(--vscode-font-family, -apple-system, BlinkMacSystemFont, sans-serif) !important;
     }
 
-    .cm-editor {
-      height: 100%;
+    /* But keep code blocks in Live Preview monospace */
+    body[data-mode="livePreview"] .cm-inline-code,
+    body[data-mode="livePreview"] .cm-code-block,
+    body[data-mode="livePreview"] .cm-fenced-code {
+      font-family: "SF Mono", Monaco, Menlo, Courier, monospace !important;
     }
 
-    .cm-scroller {
-      overflow: auto;
-    }
-
-    /* All theme colors are managed by the theme system in webview/themes/ */
-    /* Theme is applied dynamically via CodeMirror's theme extensions */
-
-    /* Context menu - basic structure only, colors injected dynamically */
-    #context-menu {
+    /* Hide scrollbar for the main container but allow scrolling */
+    .jetski-scrollable-element::-webkit-scrollbar {
       display: none;
-      position: fixed;
-      border-radius: 3px;
-      z-index: 10000;
-      min-width: 180px;
-      padding: 4px 0;
     }
-
-    .context-menu-item {
-      padding: 6px 12px;
-      cursor: pointer;
-      font-size: 13px;
-    }
-
-    .context-menu-separator {
-      height: 1px;
-      margin: 4px 0;
-    }
-
-    /* Loading and error states - minimal structure */
-    .loading {
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      height: 100%;
-    }
-
-    .error {
-      padding: 20px;
-      border-radius: 4px;
-      margin: 20px;
+    .jetski-scrollable-element {
+      -ms-overflow-style: none;
+      scrollbar-width: none;
     }
   </style>
 </head>
-<body data-theme="${themeType}" data-mode="${defaultMode}">
-  <div id="context-menu">
-    <div class="context-menu-item" data-action="openInBrowser">Open in Browser</div>
+<body data-theme="${themeType}" data-mode="${defaultMode}" class="bg-editor-background text-editor-foreground h-screen flex flex-col overflow-hidden">
+  
+  <div class="editor-container h-full flex flex-col bg-white dark:bg-[#1e1e1e]">
+    <div class="editor-instance h-full flex flex-col">
+      
+      <!-- Header / Toolbar -->
+
+
+      <!-- Main Editor Area -->
+      <div class="w-full min-h-0 flex-grow overflow-auto jetski-scrollable-element relative">
+        <div class="relative w-full h-full">
+          <div class="w-full flex h-full relative">
+            <div class="relative pl-4 pr-4 py-1 min-w-0 grow h-fit">
+              <!-- Editor Content Mount Point -->
+              <div id="editor" class="leading-relaxed select-text text-sm flex flex-col min-h-[500px]">
+                <div class="loading">Loading editor...</div>
+              </div>
+            </div>
+            
+            <!-- Right Sidebar / Comments (Placeholder) -->
+            <div class="relative min-w-0 w-80 shrink-1 hidden lg:block">
+              <!-- Comment UI would go here -->
+            </div>
+          </div>
+        </div>
+      </div>
+      
+    </div>
   </div>
-  <div id="editor">
-    <div class="loading">Loading editor...</div>
+
+  <div id="context-menu" class="hidden fixed bg-editor-background border border-gray-500/20 shadow-lg rounded z-50 min-w-[180px] py-1">
+    <div class="context-menu-item px-3 py-1.5 cursor-pointer hover:bg-gray-500/10 text-sm" data-action="openInBrowser">Open in Browser</div>
   </div>
+
   <script src="${scriptUri}"></script>
 </body>
 </html>`;

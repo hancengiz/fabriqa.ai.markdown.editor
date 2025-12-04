@@ -1,0 +1,85 @@
+:root {
+    /* Fonts */
+    --vscode-font-family: -apple-system, BlinkMacSystemFont, sans-serif;
+    --vscode-editor-font-family: "SF Mono", Monaco, Menlo, Courier, monospace;
+    --vscode-font-size: 13px;
+    --vscode-font-weight: normal;
+
+    /* Editor Colors */
+    --vscode-editor-background: #ffffff;
+    --vscode-editor-foreground: #3b3b3b;
+    --vscode-editorWidget-background: #f8f8f8;
+    --vscode-editorWidget-foreground: #3b3b3b;
+    --vscode-editorWidget-border: #c8c8c8;
+
+    /* Selection */
+    --vscode-editor-selectionBackground: #add6ff;
+    --vscode-editor-inactiveSelectionBackground: #e5ebf1;
+    --vscode-editor-selectionHighlightBackground: rgba(173, 214, 255, 0.5);
+
+    /* UI Elements */
+    --vscode-button-background: #005fb8;
+    --vscode-button-foreground: #ffffff;
+    --vscode-button-hoverBackground: #0258a8;
+    --vscode-input-background: #ffffff;
+    --vscode-input-foreground: #3b3b3b;
+    --vscode-input-border: #cecece;
+    --vscode-input-placeholderForeground: #767676;
+
+    /* Scrollbar */
+    --vscode-scrollbarSlider-background: rgba(100, 100, 100, 0.4);
+    --vscode-scrollbarSlider-hoverBackground: rgba(100, 100, 100, 0.7);
+    --vscode-scrollbarSlider-activeBackground: rgba(0, 0, 0, 0.6);
+
+    /* Lists & Trees */
+    --vscode-list-activeSelectionBackground: #e8e8e8;
+    --vscode-list-activeSelectionForeground: #000000;
+    --vscode-list-hoverBackground: #f2f2f2;
+    --vscode-list-focusOutline: #005fb8;
+
+    /* Text & Links */
+    --vscode-textLink-foreground: #005fb8;
+    --vscode-textLink-activeForeground: #005fb8;
+    --vscode-textBlockQuote-background: #f8f8f8;
+    --vscode-textBlockQuote-border: #e5e5e5;
+    --vscode-textCodeBlock-background: #f8f8f8;
+
+    /* Layout & Sashes */
+    --vscode-sash-size: 4px;
+    --vscode-sash-hover-size: 4px;
+
+    /* Monaco Editor Decorations */
+    --monaco-editor-error-decoration: url("data:image/svg+xml,%3Csvg%20xmlns%3D'http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg'%20viewBox%3D'0%200%206%203'%20enable-background%3D'new%200%200%206%203'%20height%3D'3'%20width%3D'6'%3E%3Cg%20fill%3D'%23e51400'%3E%3Cpolygon%20points%3D'5.5%2C0%202.5%2C3%201.1%2C3%204.1%2C0'%2F%3E%3Cpolygon%20points%3D'4%2C0%206%2C2%206%2C0.6%205.4%2C0'%2F%3E%3Cpolygon%20points%3D'0%2C2%201%2C3%202.4%2C3%200%2C0.6'%2F%3E%3C%2Fg%3E%3C%2Fsvg%3E");
+    --monaco-editor-warning-decoration: url("data:image/svg+xml,%3Csvg%20xmlns%3D'http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg'%20viewBox%3D'0%200%206%203'%20enable-background%3D'new%200%200%206%203'%20height%3D'3'%20width%3D'6'%3E%3Cg%20fill%3D'%23bf8803'%3E%3Cpolygon%20points%3D'5.5%2C0%202.5%2C3%201.1%2C3%204.1%2C0'%2F%3E%3Cpolygon%20points%3D'4%2C0%206%2C2%206%2C0.6%205.4%2C0'%2F%3E%3Cpolygon%20points%3D'0%2C2%201%2C3%202.4%2C3%200%2C0.6'%2F%3E%3C%2Fg%3E%3C%2Fsvg%3E");
+    --monaco-editor-info-decoration: url("data:image/svg+xml,%3Csvg%20xmlns%3D'http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg'%20viewBox%3D'0%200%206%203'%20enable-background%3D'new%200%200%206%203'%20height%3D'3'%20width%3D'6'%3E%3Cg%20fill%3D'%231a85ff'%3E%3Cpolygon%20points%3D'5.5%2C0%202.5%2C3%201.1%2C3%204.1%2C0'%2F%3E%3Cpolygon%20points%3D'4%2C0%206%2C2%206%2C0.6%205.4%2C0'%2F%3E%3Cpolygon%20points%3D'0%2C2%201%2C3%202.4%2C3%200%2C0.6'%2F%3E%3C%2Fg%3E%3C%2Fsvg%3E");
+    --monaco-editor-hint-decoration: url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20height%3D%223%22%20width%3D%2212%22%3E%3Cg%20fill%3D%22%236c6c6c%22%3E%3Ccircle%20cx%3D%221%22%20cy%3D%221%22%20r%3D%221%22%2F%3E%3Ccircle%20cx%3D%225%22%20cy%3D%221%22%20r%3D%221%22%2F%3E%3Ccircle%20cx%3D%229%22%20cy%3D%221%22%20r%3D%221%22%2F%3E%3C%2Fg%3E%3C%2Fsvg%3E");
+    --monaco-editor-unnecessary-decoration-opacity: 0.467;
+
+    /* Custom / RT Colors */
+    --rt-color-white: #fff;
+    --rt-color-dark: #222;
+    --rt-color-success: #8dc572;
+    --rt-color-error: #be6464;
+    --rt-color-warning: #f0ad4e;
+    --rt-color-info: #337ab7;
+    --rt-opacity: 0.9;
+    --rt-transition-show-delay: 0.15s;
+    --rt-transition-closing-delay: 0.15s;
+
+    /* Z-Indices */
+    --z-index-notebook-progress-bar: 5;
+    --z-index-notebook-list-insertion-indicator: 10;
+    --z-index-notebook-diff-view-viewport-slider: 10;
+    --z-index-notebook-cell-editor-outline: 20;
+    --z-index-notebook-scrollbar: 25;
+    --z-index-notebook-cell-status: 26;
+    --z-index-notebook-folding-indicator: 26;
+    --z-index-notebook-output: 27;
+    --z-index-notebook-cell-bottom-toolbar-container: 28;
+    --z-index-notebook-run-button-container: 29;
+    --z-index-notebook-input-collapse-condicon: 29;
+    --z-index-notebook-cell-output-toolbar: 30;
+    --z-index-notebook-cell-expand-part-button: 36;
+    --z-index-notebook-cell-toolbar: 37;
+    --z-index-notebook-cell-toolbar-dropdown-active: 38;
+}

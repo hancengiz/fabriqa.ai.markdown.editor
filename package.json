@@ -447,9 +447,10 @@
     ]
   },
   "scripts": {
-    "vscode:prepublish": "npm run build",
-    "build": "node esbuild.js --production",
-    "watch": "node esbuild.js --watch",
+    "vscode:prepublish": "npm run build:css && npm run build",
+    "build": "npm run build:css && node esbuild.js --production",
+    "build:css": "npx tailwindcss -i ./webview/styles/tailwind.css -o ./dist/style.css",
+    "watch": "npm run build:css && node esbuild.js --watch",
     "compile": "tsc -p ./",
     "lint": "eslint src --ext ts",
     "test": "node ./out/test/runTest.js",
@@ -487,9 +488,12 @@
     "@typescript-eslint/parser": "^6.17.0",
     "@vscode/test-electron": "^2.3.8",
     "@vscode/vsce": "^2.22.0",
+    "autoprefixer": "^10.4.17",
     "esbuild": "^0.19.11",
     "eslint": "^8.56.0",
     "jest": "^29.7.0",
+    "postcss": "^8.4.35",
+    "tailwindcss": "^3.4.1",
     "ts-jest": "^29.1.1",
     "typescript": "^5.3.3"
   }
