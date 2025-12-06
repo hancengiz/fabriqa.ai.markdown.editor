@@ -255,6 +255,10 @@ export class MermaidDiagramWidget extends WidgetType {
     }
 
     // Handle "View Code" button click
+    viewCodeButton.addEventListener('mousedown', (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+    });
     viewCodeButton.addEventListener('click', (e) => {
       e.preventDefault();
       e.stopPropagation();
@@ -332,6 +336,10 @@ export class MermaidDiagramWidget extends WidgetType {
     container.appendChild(diagramContainer);
 
     // Handle zoom button click
+    zoomButton.addEventListener('mousedown', (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+    });
     zoomButton.addEventListener('click', (e) => {
       e.preventDefault();
       e.stopPropagation();

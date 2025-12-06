@@ -1,5 +1,6 @@
 import { EditorView } from '@codemirror/view';
 import { EditorSelection } from '@codemirror/state';
+import { getVisualWidth, padString } from '../utils/textWidth';
 
 /**
  * Markdown formatting commands for keyboard shortcuts
@@ -836,7 +837,8 @@ export function formatTable(view: EditorView): boolean {
   const colWidths: number[] = [];
   allCells.forEach(cells => {
     cells.forEach((cell, i) => {
-      colWidths[i] = Math.max(colWidths[i] || 0, cell.length);
+      // Enforce minimum width of 3 for valid markdown tables
+      colWidths[i] = Math.max(colWidths[i] || 3, getVisualWidth(cell));
     });
   });
 
@@ -850,14 +852,14 @@ export function formatTable(view: EditorView): boolean {
         const width = colWidths[colIndex];
 
         if (isCenter) {
-          return ':' + '-'.repeat(width - 2) + ':';
+          return ':' + '-'.repeat(Math.max(1, width - 2)) + ':';
         } else if (isRight) {
-          return '-'.repeat(width - 1) + ':';
+          return '-'.repeat(Math.max(1, width - 1)) + ':';
         } else {
           return '-'.repeat(width);
         }
       }
-      return cell.padEnd(colWidths[colIndex], ' ');
+      return padString(cell, colWidths[colIndex]);
     });
     return formatTableRow(paddedCells);
   });
