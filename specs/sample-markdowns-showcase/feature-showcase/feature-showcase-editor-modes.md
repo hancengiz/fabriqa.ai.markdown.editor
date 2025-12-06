@@ -83,15 +83,15 @@ This demonstrates the three editing modes available in fabriqa.ai markdown edito
 
 ## Mode Comparison
 
-| Feature | Live Preview | Source | Reading |
-|---------|-------------|--------|---------|
-| Edit Text | ✅ Yes | ✅ Yes | ❌ No |
-| See Formatting | ✅ Yes | ❌ No | ✅ Yes |
-| Syntax Visible | 🔄 Contextual | ✅ Always | ❌ Never |
-| Click Checkboxes | ✅ Yes | ❌ No | ✅ Yes |
-| Cmd+Click Links | ✅ Yes | ❌ No | ✅ Yes |
+| Feature                     | Live Preview    | Source             | Reading     |
+| ------------------- | --------------- | -------------- | ----------- |
+| Edit Text                   | ✅ Yes              | ✅ Yes             | ❌ No         |
+| See Formatting        | ✅ Yes              | ❌ No              | ✅ Yes       |
+| Syntax Visible          | 🔄 Contextual | ✅ Always       | ❌ Never   |
+| Click Checkboxes   | ✅ Yes              | ❌ No              | ✅ Yes       |
+| Cmd+Click Links     | ✅ Yes              | ❌ No              | ✅ Yes       |
 | Mermaid Diagrams | 🔄 Contextual | ❌ Code Only | ✅ Always |
-| Best For | Writing | Source Edit | Reading |
+| Best For                   | Writing             | Source Edit      | Reading     |
 
 ---
 

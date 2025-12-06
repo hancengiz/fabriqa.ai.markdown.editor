@@ -62,6 +62,7 @@ Interactive diagram rendering:
 Example:
 
 ```mermaid
+%% {"editorSize": {"width": 594, "height": 262}} %%
 graph LR
     A[User] --> B{Feature?}
     B -->|Images| C[Render Inline]
@@ -145,7 +146,7 @@ Access via command palette:
 Enable in settings:
 - Detailed operation logs
 - File system operations
-- Decoration changes
+- Decoration changes 
 - Performance metrics
 
 ---
