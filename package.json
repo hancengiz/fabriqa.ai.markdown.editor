@@ -428,20 +428,20 @@
       },
       {
         "command": "fabriqa.switchToLivePreview",
-        "key": "ctrl+shift+l",
-        "mac": "cmd+shift+l",
+        "key": "ctrl+shift+1",
+        "mac": "cmd+shift+1",
         "when": "activeCustomEditorId == fabriqa.markdownEditor"
       },
       {
         "command": "fabriqa.switchToSource",
-        "key": "ctrl+shift+e",
-        "mac": "cmd+shift+e",
+        "key": "ctrl+shift+2",
+        "mac": "cmd+shift+2",
         "when": "activeCustomEditorId == fabriqa.markdownEditor"
       },
       {
         "command": "fabriqa.switchToReading",
-        "key": "ctrl+shift+r",
-        "mac": "cmd+shift+r",
+        "key": "ctrl+shift+3",
+        "mac": "cmd+shift+3",
         "when": "activeCustomEditorId == fabriqa.markdownEditor"
       }
     ]
