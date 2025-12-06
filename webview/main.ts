@@ -58,23 +58,23 @@ const basicExtensions = [
   search({ top: false }), // Add search support without panel UI
   keymap.of([
     // Mode switching shortcuts (editor rendering modes)
-    // Using numbers 1/2/3 to avoid conflicts with VS Code shortcuts
+    // Using Cmd+Alt+1/2/3 to avoid conflicts with macOS screenshot shortcuts (Cmd+Shift+3/4)
     {
-      key: 'Mod-Shift-1',
+      key: 'Mod-Alt-1',
       run: () => {
         switchMode('livePreview');
         return true;
       }
     },
     {
-      key: 'Mod-Shift-2',
+      key: 'Mod-Alt-2',
       run: () => {
         switchMode('source');
         return true;
       }
     },
     {
-      key: 'Mod-Shift-3',
+      key: 'Mod-Alt-3',
       run: () => {
         switchMode('reading');
         return true;
