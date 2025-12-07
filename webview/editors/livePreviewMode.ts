@@ -224,6 +224,7 @@ export const livePreviewPlugin = ViewPlugin.fromClass(
           // Define structures that should become "active" (show raw markdown)
           const structureTypes = [
             // Block-level structures
+            'Frontmatter',
             'FencedCode',
             'CodeBlock',
             'ATXHeading1', 'ATXHeading2', 'ATXHeading3',

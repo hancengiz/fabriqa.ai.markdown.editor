@@ -13,6 +13,7 @@ import { foldGutter, indentOnInput, syntaxHighlighting as syntaxHighlightingFace
 import { lintKeymap } from '@codemirror/lint';
 import { livePreviewPlugin } from './editors/livePreviewMode';
 import { readingModePlugin } from './editors/readingMode';
+import { yamlFrontmatter } from './editors/frontmatterParser';
 import { markdownHidingStyles } from './lib/markdown-live-preview';
 import { getCurrentTheme, setTheme } from './themes';
 import {
@@ -264,7 +265,7 @@ function initializeEditor(): void {
       doc: '',
       extensions: [
         ...basicExtensions,
-        markdown({ extensions: [GFM] }), // Enable GFM (GitHub Flavored Markdown) including tables
+        markdown({ extensions: [GFM, yamlFrontmatter] }), // Enable GFM and YAML Frontmatter
         markdownHidingStyles, // CSS for hiding markdown syntax
         modeCompartment.of(getModeExtensions(initialMode)),
         themeCompartment.of(getThemeExtensions()),
